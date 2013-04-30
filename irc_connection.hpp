@@ -25,16 +25,26 @@ public:
 	               std::string host, 
 	               std::string service);
 
-	template<typename F> boost::signals::connection connect_on_priv_msg(F&& f) 
-	{ return on_priv_msg.connect(std::forward<F>(f)); }
+	template<typename F> boost::signals::connection connect_on_privmsg(F&& f) 
+	{ return parser.connect_on_privmsg(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_resolve(F f) 
-	{ return on_resolve.connect(f); }
-	//{ return on_resolve.connect(std::forward<F>(f)); }
+	template<typename F> boost::signals::connection connect_on_notice(F&& f) 
+	{ return parser.connect_on_notice(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_connect(F f) 
-	{ return on_connect.connect(f); }
-	//{ return on_connect.connect(std::forward<F>(f)); }
+	template<typename F> boost::signals::connection connect_on_mode(F&& f) 
+	{ return parser.connect_on_mode(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_topic(F&& f) 
+	{ return parser.connect_on_topic(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_kick(F&& f) 
+	{ return parser.connect_on_kick(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
+	{ return on_resolve.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_connect(F&& f) 
+	{ return on_connect.connect(std::forward<F>(f)); }
 
 	irc_connection(boost::asio::io_service& io_service,
 	               std::string host, 
@@ -68,7 +78,6 @@ private:
 	void parse_message(std::string::const_iterator first, 
 	                   std::string::const_iterator last);
 //signals
-	sig_2s on_priv_msg;
 	sig_v  on_resolve;
 	sig_v  on_connect;
 

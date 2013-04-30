@@ -10,14 +10,20 @@ using optional_string=boost::optional<std::string>;
 using sig_2s         =boost::signal<void(std::string, std::string)>;
 using sig_s_os       =boost::signal<void(std::string, optional_string)>;
 
+using sig_2s_os      =boost::signal<void(std::string, std::string, optional_string)>;
+
 using sig_vs_s       =boost::signal<void(std::vector<std::string>, std::string)>;
 
-
 class irc_parser {
-	sig_vs_s on_privmsg;
-	sig_2s   on_notice;
-	sig_s_os on_ping;
-	sig_s_os on_pong;
+	sig_vs_s  on_privmsg;
+	sig_2s    on_notice;
+
+	sig_2s    on_mode;
+	sig_2s    on_topic;
+	sig_2s_os on_kick;
+
+	sig_s_os  on_ping;
+	sig_s_os  on_pong;
 
 public:
 	template<typename F> boost::signals::connection connect_on_privmsg(F&& f)
@@ -26,6 +32,15 @@ public:
 	template<typename F> boost::signals::connection connect_on_notice(F&& f)
 	{ return on_notice.connect(std::forward<F>(f)); }
 
+	template<typename F> boost::signals::connection connect_on_mode(F&& f)
+	{ return on_mode.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_topic(F&& f)
+	{ return on_topic.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_kick(F&& f)
+	{ return on_kick.connect(std::forward<F>(f)); }
+
 	template<typename F> boost::signals::connection connect_on_ping(F&& f)
 	{ return on_ping.connect(std::forward<F>(f)); }
 	
@@ -33,40 +48,13 @@ public:
 	{ return on_pong.connect(std::forward<F>(f)); }
 
 
-	void parse_message(const std::string& message); /*{
-		auto first=message.cbegin(), last=message.cend();
-
-		qi::lit_type    lit;
-		qi::char_type   char_;
-		qi::space_type  space;
-		qi::string_type string;
-
-		qi::_1_type    _1;
-		qi::_2_type    _2;
-
-		rule<std::string> word =+(~char_(' '));
-		rule<std::string> line =lit(':') >> *char_;
-
-		rule<std::string> actor=char_("@#") >> word;
-
-
-		bool success=qi::phrase_parse(
-			first, last,
-			( ("PRIVMSG" >> +(!lit(':') >> actor) >> line)  
-			                               [ phx::bind(phx::ref(on_privmsg), _1, _2) ]
-			| ("NOTICE"  >> word >> word)  [ phx::bind(phx::ref(on_notice),  _1, _2) ]
-			| ("PING"    >> word >> -word) [ phx::bind(phx::ref(on_ping),    _1, _2) ]
-			| ("PONG"    >> word >> -word) [ phx::bind(phx::ref(on_pong),    _1, _2) ]
-			)
-			, space
-		);
-		if(!success) {
-			std::cerr << "ERROR PARSING: " <<  message << std::endl;
-		}
-	}*/
+	void parse_message(const std::string& message); 
 }; //class irc_parser
 
 #endif //IRC_PARSER_HPP
+
+
+
 
 ///
 ////for testing 
