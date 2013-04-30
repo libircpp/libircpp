@@ -28,11 +28,13 @@ public:
 	template<typename F> boost::signals::connection connect_on_priv_msg(F&& f) 
 	{ return on_priv_msg.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
-	{ return on_resolve.connect(std::forward<F>(f)); }
+	template<typename F> boost::signals::connection connect_on_resolve(F f) 
+	{ return on_resolve.connect(f); }
+	//{ return on_resolve.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_connect(F&& f) 
-	{ return on_connect.connect(std::forward<F>(f)); }
+	template<typename F> boost::signals::connection connect_on_connect(F f) 
+	{ return on_connect.connect(f); }
+	//{ return on_connect.connect(std::forward<F>(f)); }
 
 	irc_connection(boost::asio::io_service& io_service,
 	               std::string host, 

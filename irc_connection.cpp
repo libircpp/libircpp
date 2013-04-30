@@ -23,7 +23,8 @@ std::shared_ptr<irc_connection> irc_connection::make_shared(
 irc_connection::irc_connection(boost::asio::io_service& io_service,
                                std::string host,
                                std::string service) 
-:	socket   { io_service                          }
+:	on_resolve { }
+,	socket   { io_service                          }
 ,	resolver { io_service                          }
 ,	query    { std::move(host), std::move(service) }
 {	}
