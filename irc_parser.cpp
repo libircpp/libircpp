@@ -70,16 +70,17 @@ void irc_parser::parse_message(const std::string& message) {
 	rule<std::string> word =+~char_(' ');
 	rule<std::string> line =lit(':') >> *char_;
 
-	rule<prefix> prefix_parser = lit(':') >> ( nick                    >> -( '!' >> user )        >> -( '@' >> host ) >> lexeme[ ' ' ]
-			                                 | attr(optional_string{}) >> attr(optional_string{}) >> host             >> lexeme[ ' ' ]
-			                                 ) 
-											 ;
+	rule<prefix> prefix_parser = 
+		lit(':') >> ( nick                    >> -( '!' >> user )        >> -( '@' >> host ) >> lexeme[ ' ' ]
+		            | attr(optional_string{}) >> attr(optional_string{}) >> host             >> lexeme[ ' ' ]
+		            ) 
+		            ;
 		 
 	bool success=qi::phrase_parse(
 		first, last,
 
 		 -prefix_parser[prnt_pfx] >> 			
-		    ( ("PRIVMSG" >> +(!lit(':') >> word) >> line)  [ phx::bind(phx::ref(on_privmsg), _1, _2)     ]
+			( ("PRIVMSG" >> +(!lit(':') >> word) >> line)  [ phx::bind(phx::ref(on_privmsg), _1, _2)     ]
 			| ("NOTICE"  >> word >> line)                  [ phx::bind(phx::ref(on_notice),  _1, _2)     ]
 			| ("MODE"    >> word >> line)                  [ phx::bind(phx::ref(on_mode),    _1, _2)     ]
 			| ("TOPIC"   >> word >> line)                  [ phx::bind(phx::ref(on_topic),   _1, _2)     ]
