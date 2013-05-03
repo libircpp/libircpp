@@ -20,12 +20,20 @@ int main() {
 			ic->async_write("USER zebby123432 0 * :tutorial bot\r\n");
 			ic->async_write("NICK zebby123432\r\n");
 			ic->async_write("JOIN #brown_fox\r\n");
+			
+			ic->async_write("JOIN #jumped_over\r\n");
+			ic->async_write("JOIN #lazy_dog\r\n");
+
+			ic->async_write("JOIN #linux\r\n");
 		});
 
-		ic->connect_on_privmsg([&](const std::vector<std::string>& to, const std::string& msg) {
+		ic->connect_on_privmsg([&](const prefix& pfx,
+		                           const std::vector<std::string>& to, 
+                                   const std::string& msg) {
 			std::cout << "privmsg to: ";
 			for(const auto& s : to) std::cout << s << " ";
-			std::cout << " -> " << msg << std::endl;
+
+			std::cout << "from: " << pfx << " -> " << msg << std::endl;
 		});
 
 		ic->connect_on_mode([&](const std::string& target, const std::string& mode) {
@@ -43,6 +51,40 @@ int main() {
 			if(comment) std::cout << " reason: " << *comment;
 			std::cout << std::endl;
 		});
+
+		ic->connect_on_ping([&](const prefix&          pfx,
+		                        const std::string&     server1,
+		                        const optional_string& server2) {
+			std::cout << "Ping from: " << pfx << "  server1   " << server1 << "  server2? " << server2 << "#############################################################################################" << std::endl;
+			
+			ic->async_write("PONG zebby123432 " + server1 + "\r\n");
+		});
+
+
+		ic->connect_on_join([&](const prefix&          pfx,
+		                        const std::string&     chan) {
+			std::cout << pfx << " has joined " << chan << std::endl;
+		});
+
+		ic->connect_on_part([&](const prefix&          pfx,
+		                        const std::string&     chan,
+		                        const optional_string& msg) {
+
+			std::cout << pfx << " has parted " << chan ;
+			if(msg) std::cout << "  with " << *msg;
+			std::cout << std::endl;
+		});
+
+		ic->connect_on_quit([&](const prefix&      pfx,
+		                        const std::string& msg) {
+			std::cout << pfx << " has quit with msg: " << msg << std::endl;
+		});
+
+		ic->connect_on_nick([&](const prefix&      pfx,
+		                        const std::string& nick) {
+			std::cout << pfx << "  has set their nick to: " << nick << std::endl;
+		});
+
 
 		io_service.run();
 	}

@@ -40,6 +40,24 @@ public:
 	template<typename F> boost::signals::connection connect_on_kick(F&& f) 
 	{ return parser.connect_on_kick(std::forward<F>(f)); }
 
+	template<typename F> boost::signals::connection connect_on_ping(F&& f) 
+	{ return parser.connect_on_ping(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_pong(F&& f) 
+	{ return parser.connect_on_pong(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_join(F&& f) 
+	{ return parser.connect_on_join(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_part(F&& f) 
+	{ return parser.connect_on_part(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_quit(F&& f) 
+	{ return parser.connect_on_quit(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_nick(F&& f) 
+	{ return parser.connect_on_nick(std::forward<F>(f)); }
+
 	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
 	{ return on_resolve.connect(std::forward<F>(f)); }
 

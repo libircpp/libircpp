@@ -7,24 +7,35 @@
 #include <string>
 
 using optional_string=boost::optional<std::string>;
+
+//TODO: move to it's own file
+struct prefix { optional_string nick, user, host; };
+std::ostream& operator<<(std::ostream& os, const prefix& pfx);
+
+using sig_p_s        =boost::signal<void(prefix, std::string)>;
+using sig_p_2s       =boost::signal<void(prefix, std::string, std::string)>;
+
 using sig_2s         =boost::signal<void(std::string, std::string)>;
 using sig_s_os       =boost::signal<void(std::string, optional_string)>;
-
 using sig_2s_os      =boost::signal<void(std::string, std::string, optional_string)>;
 
-using sig_vs_s       =boost::signal<void(std::vector<std::string>, std::string)>;
+//using sig_vs_s       =boost::signal<void(std::vector<std::string>, std::string)>;
+using sig_p_vs_s     =boost::signal<void(prefix, std::vector<std::string>, std::string)>;
+
+using sig_p_s_os     =boost::signal<void(prefix, std::string, optional_string)>;
 
 class irc_parser {
-	sig_vs_s  on_privmsg;
-	sig_2s    on_notice;
-
-	sig_2s    on_mode;
-	sig_2s    on_topic;
-	sig_2s_os on_kick;
-
-	sig_s_os  on_ping;
-	sig_s_os  on_pong;
-
+	sig_p_vs_s  on_privmsg;
+	sig_2s      on_notice;
+	sig_2s      on_mode;
+	sig_2s      on_topic;
+	sig_2s_os   on_kick;
+	sig_p_s_os  on_ping;
+	sig_s_os    on_pong;
+	sig_p_s     on_join;
+	sig_p_s_os  on_part;
+	sig_p_s     on_quit;
+	sig_p_s     on_nick;
 public:
 	template<typename F> boost::signals::connection connect_on_privmsg(F&& f)
 	{ return on_privmsg.connect(std::forward<F>(f)); }
@@ -47,50 +58,20 @@ public:
 	template<typename F> boost::signals::connection connect_on_pong(F&& f)
 	{ return on_pong.connect(std::forward<F>(f)); }
 
+	template<typename F> boost::signals::connection connect_on_join(F&& f)
+	{ return on_join.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_part(F&& f)
+	{ return on_part.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_quit(F&& f)
+	{ return on_quit.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_nick(F&& f)
+	{ return on_nick.connect(std::forward<F>(f)); }
 
 	void parse_message(const std::string& message); 
 }; //class irc_parser
 
 #endif //IRC_PARSER_HPP
 
-
-
-
-///
-////for testing 
-//#include <iostream>
-//
-//int main() {
-//	irc_parser irc_p;
-//
-//
-//	irc_p.connect_on_privmsg([](std::vector<std::string> s1, std::string s2) {
-//		std::cout << "Private message to \n";
-//		int i=0;
-//		for(auto s : s1) { 
-//			std::cout << i << ":  " << s << '\t';
-//			++i;
-//		}
-//		std::cout << "MSG: " << s2 << '\n';
-//	});
-//
-//	
-//	irc_p.parse_message("PRIVMSG #hello #world :foo bar");
-//
-//	/*
-//	irc_p.parse_message("NOTICE hello world");
-//	irc_p.connect_on_notice([](std::string s1, std::string s2) {
-//			std::cout << "1: " << s1 << "\n2: " << s2 << "\n";
-//		}
-//	);
-//
-//	irc_p.connect_on_ping([](std::string s1, optional_string o1) {
-//		std::cout << "1: " << s1 << '\n';
-//		if(o1)	std::cout << "2: " << *o1 << "\n";
-//	});
-//
-//	irc_p.parse_message("NOTICE foo bar");
-//	irc_p.parse_message("PING foo bar");
-//	irc_p.parse_message("PING foo");
-//	*/
-//}
