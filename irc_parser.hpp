@@ -20,8 +20,9 @@ using sig_s_os       =boost::signal<void(std::string, optional_string)>;
 using sig_2s_os      =boost::signal<void(std::string, std::string, optional_string)>;
 
 //using sig_vs_s       =boost::signal<void(std::vector<std::string>, std::string)>;
-using sig_p_vs_s     =boost::signal<void(prefix, std::vector<std::string>, std::string)>;
 
+using sig_p_i_vs     =boost::signal<void(prefix, int, std::vector<std::string>)>;
+using sig_p_vs_s     =boost::signal<void(prefix, std::vector<std::string>, std::string)>;
 using sig_p_s_os     =boost::signal<void(prefix, std::string, optional_string)>;
 
 class irc_parser {
@@ -36,6 +37,7 @@ class irc_parser {
 	sig_p_s_os  on_part;
 	sig_p_s     on_quit;
 	sig_p_s     on_nick;
+	sig_p_i_vs  on_reply;
 public:
 	template<typename F> boost::signals::connection connect_on_privmsg(F&& f)
 	{ return on_privmsg.connect(std::forward<F>(f)); }
@@ -69,6 +71,9 @@ public:
 
 	template<typename F> boost::signals::connection connect_on_nick(F&& f)
 	{ return on_nick.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_reply(F&& f)
+	{ return on_reply.connect(std::forward<F>(f)); }
 
 	void parse_message(const std::string& message); 
 }; //class irc_parser

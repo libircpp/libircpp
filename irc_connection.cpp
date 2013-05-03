@@ -38,6 +38,15 @@ void irc_connection::async_resolve() {
 			ph::_1, ph::_2
 		)
 	);
+
+	parser.connect_on_reply([&](const prefix&                   pfx,
+	                            int                             value,
+	                            const std::vector<std::string>& params) {
+		std::cout << pfx << " value: " << value << '\n';
+		for(const auto& param :  params) {
+			std::cout << param << std::endl;			
+		}
+	});
 }
 
 void irc_connection::async_read() {

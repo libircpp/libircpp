@@ -38,13 +38,14 @@ void irc_parser::parse_message(const std::string& message) {
 	auto first=message.cbegin(), last=message.cend();
 
 	qi::lit_type    lit;
+	qi::int_type    int_;
 	qi::char_type   char_;
 	qi::space_type  space;
 	qi::_1_type     _1;
 	qi::_2_type     _2;
 	qi::_3_type     _3;
 	qi::_a_type     _a;
-
+	
 	qi::alpha_type  alpha;
 	qi::alnum_type  alnum;
 
@@ -81,6 +82,9 @@ void irc_parser::parse_message(const std::string& message) {
 			| ("PART"    >> word >> -line)                 [ phx::bind(phx::ref(on_part),    _a, _1, _2) ]
 			| ("QUIT"    >> line)                          [ phx::bind(phx::ref(on_quit),    _a, _1)     ]
 			| ("NICK"    >> line)                          [ phx::bind(phx::ref(on_nick),    _a, _1)     ]
+			//NUMERIC response	
+			//| ( int_     >> (*(!lit(':') >> word) >> -line ))            [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
+			| ( int_     >> *(line | word))                [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
 			)
 			;
 #ifdef IRC_PRNT_DEBUG

@@ -17,14 +17,12 @@ int main() {
 
 		ic->connect_on_connect([&] { 
 			std::cout << "connected" << std::endl; 
-			ic->async_write("USER zebby123432 0 * :tutorial bot\r\n");
-			ic->async_write("NICK zebby123432\r\n");
-			ic->async_write("JOIN #brown_fox\r\n");
-			
-			ic->async_write("JOIN #jumped_over\r\n");
-			ic->async_write("JOIN #lazy_dog\r\n");
-
-			ic->async_write("JOIN #linux\r\n");
+			ic->async_write("USER test156 0 * :test user\r\n");
+			ic->async_write("NICK test156\r\n");
+			ic->async_write("JOIN #bown_fox\r\n");
+			//ic->async_write("JOIN #jumped_over\r\n");
+			//ic->async_write("JOIN #lazy_dog\r\n");
+			//ic->async_write("JOIN #linux\r\n");
 		});
 
 		ic->connect_on_privmsg([&](const prefix& pfx,
@@ -55,11 +53,10 @@ int main() {
 		ic->connect_on_ping([&](const prefix&          pfx,
 		                        const std::string&     server1,
 		                        const optional_string& server2) {
-			std::cout << "Ping from: " << pfx << "  server1   " << server1 << "  server2? " << server2 << "#############################################################################################" << std::endl;
-			
+			std::cout << "Ping from: " << pfx << "  server1   " << server1 << "  server2? " << server2 << std::endl;
+
 			ic->async_write("PONG zebby123432 " + server1 + "\r\n");
 		});
-
 
 		ic->connect_on_join([&](const prefix&          pfx,
 		                        const std::string&     chan) {
