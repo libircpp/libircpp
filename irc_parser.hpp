@@ -9,12 +9,24 @@
 using optional_string=boost::optional<std::string>;
 
 //TODO: move to it's own file
-struct prefix { optional_string nick, user, host; };
+struct prefix { 
+	optional_string nick, user, host; 
+	prefix()=default;
+	prefix(prefix&&)=default;
+	prefix(const prefix&)=default;
+	prefix(optional_string nick_,
+	       optional_string user_, 
+	       optional_string host_);
+
+	prefix& operator=(prefix&&)=default;
+	prefix& operator=(const prefix&)=default;
+};
 std::ostream& operator<<(std::ostream& os, const prefix& pfx);
 
 using sig_p_s        =boost::signal<void(prefix, std::string)>;
 using sig_p_2s       =boost::signal<void(prefix, std::string, std::string)>;
 
+using sig_s          =boost::signal<void(std::string)>;
 using sig_2s         =boost::signal<void(std::string, std::string)>;
 using sig_s_os       =boost::signal<void(std::string, optional_string)>;
 using sig_2s_os      =boost::signal<void(std::string, std::string, optional_string)>;

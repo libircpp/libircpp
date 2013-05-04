@@ -7,13 +7,14 @@ export OPTS         =-O0 -ggdb -DCONS_FAST_COMPILE #-D_GLIBCXX_DEBUG
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
 
-export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -Werror -Wfatal-errors
+export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -Werror 
+#-Wfatal-errors
 
 export LFLAGS=$(OPTS)
 
 #slow objects are library elements and spirit parsers 
 SLOW_OBJS=
-FAST_OBJS=irc_connection.o irc_connection_test.o irc_parser.o
+FAST_OBJS=irc_connection.o irc_connection_test.o irc_parser.o session.o
 
 OBJS=$(SLOW_OBJS) $(FAST_OBJS)
 

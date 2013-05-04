@@ -12,6 +12,15 @@
 #include <string>
 #include <ostream>
 
+
+prefix::prefix(optional_string nick_, 
+               optional_string user_, 
+               optional_string host_) 
+:	nick { std::move(nick_) }
+,	user { std::move(user_) }
+,	host { std::move(host_) }
+{	}
+
 std::ostream& operator<<(std::ostream& os, const prefix& pfx) {
 	if(pfx.nick) os << '<' << *pfx.nick << '>';
 	if(pfx.nick && pfx.user) os << "!";
