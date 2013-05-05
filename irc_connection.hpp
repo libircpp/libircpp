@@ -13,6 +13,8 @@
 #include <string>
 #include <deque>
 
+namespace irc {
+
 //callback types
 namespace ph=std::placeholders;
 
@@ -112,5 +114,7 @@ private:
 	boost::asio::ip::tcp::resolver        resolver;
 	boost::asio::ip::tcp::resolver::query query;
 }; //class irc_connection
+
+} //namespace irc
 
 #endif //IRC_CONNECTION_HPP

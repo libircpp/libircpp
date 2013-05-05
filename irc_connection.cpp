@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+namespace irc {
+
 std::shared_ptr<irc_connection> irc_connection::make_shared(
 						   boost::asio::io_service& io_service,
 						   std::string host, 
@@ -151,3 +153,5 @@ void irc_connection::handle_connect(const boost::system::error_code& error) {
 void irc_connection::parse_message(std::string::const_iterator first, 
                                    std::string::const_iterator last) {
 }
+
+} //namespace irc
