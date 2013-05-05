@@ -9,11 +9,11 @@
 
 namespace irc {
 
-std::shared_ptr<irc_connection> irc_connection::make_shared(
+std::shared_ptr<connection> connection::make_shared(
 						   boost::asio::io_service& io_service,
 						   std::string host, 
 						   std::string service) {
-	auto icp=std::make_shared<irc_connection>(
+	auto icp=std::make_shared<connection>(
 		io_service, 
 		std::move(host), 
 		std::move(service)
@@ -22,7 +22,7 @@ std::shared_ptr<irc_connection> irc_connection::make_shared(
 	return icp;
 }
 
-irc_connection::irc_connection(boost::asio::io_service& io_service,
+connection::connection(boost::asio::io_service& io_service,
                                std::string host,
                                std::string service) 
 :	on_resolve { }
@@ -31,11 +31,11 @@ irc_connection::irc_connection(boost::asio::io_service& io_service,
 ,	query    { std::move(host), std::move(service) }
 {	}
 
-void irc_connection::async_resolve() {
+void connection::async_resolve() {
 	resolver.async_resolve(
 		query,
 		std::bind(
-			&irc_connection::handle_resolve,
+			&connection::handle_resolve,
 			shared_from_this(),
 			ph::_1, ph::_2
 		)
@@ -53,39 +53,39 @@ void irc_connection::async_resolve() {
 	*/
 }
 
-void irc_connection::async_read() {
+void connection::async_read() {
 	boost::asio::async_read_until(
 		socket,
 		streambuf, 
 		delim,
 		std::bind(
-			&irc_connection::handle_read,
+			&connection::handle_read,
 			shared_from_this(),
 			ph::_1, ph::_2
 		)
 	);
 }
 
-void irc_connection::async_write_next() {
+void connection::async_write_next() {
 	assert(!write_buffer.empty());
 	boost::asio::async_write(
 		socket,
 		boost::asio::buffer(write_buffer.front()),
 		std::bind(
-			&irc_connection::handle_write,
+			&connection::handle_write,
 			shared_from_this(),
 			ph::_1, ph::_2
 		)
 	);		
 }
 
-void irc_connection::async_write(std::string str) {
+void connection::async_write(std::string str) {
 	bool empty=write_buffer.empty();
 	write_buffer.push_back(std::move(str));
 	if(empty) async_write_next();
 }
 
-void irc_connection::handle_read(const boost::system::error_code& error,
+void connection::handle_read(const boost::system::error_code& error,
 				 std::size_t bytes_transferred) {
 	if(error) {
 		//handle error
@@ -110,7 +110,7 @@ void irc_connection::handle_read(const boost::system::error_code& error,
 	}
 }
 
-void irc_connection::handle_write(const boost::system::error_code& error,
+void connection::handle_write(const boost::system::error_code& error,
 				                  std::size_t bytes_transferred) {
 	if(error) {
 		//handle error
@@ -122,13 +122,13 @@ void irc_connection::handle_write(const boost::system::error_code& error,
 	}
 }
 
-void irc_connection::handle_resolve(const boost::system::error_code& error,
+void connection::handle_resolve(const boost::system::error_code& error,
 					       boost::asio::ip::tcp::resolver::iterator iterator) {
 	if(!error) {
 		socket.async_connect(
 			*iterator,
 			std::bind(
-				&irc_connection::handle_connect,
+				&connection::handle_connect,
 				shared_from_this(),
 				ph::_1
 			)
@@ -141,7 +141,7 @@ void irc_connection::handle_resolve(const boost::system::error_code& error,
 	}
 }
 
-void irc_connection::handle_connect(const boost::system::error_code& error) {
+void connection::handle_connect(const boost::system::error_code& error) {
 	if(!error) {
 		on_connect();
 	}
@@ -150,7 +150,7 @@ void irc_connection::handle_connect(const boost::system::error_code& error) {
 	}
 }
 
-void irc_connection::parse_message(std::string::const_iterator first, 
+void connection::parse_message(std::string::const_iterator first, 
                                    std::string::const_iterator last) {
 }
 

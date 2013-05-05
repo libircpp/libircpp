@@ -12,31 +12,34 @@ namespace irc {
 
 void session::prepare_connection() {
 	std::cout << "connected" << std::endl;
-	assert(connection);
-	connection->connect_on_reply(
+	assert(connection__);
+
+	connection__->connect_on_privmsg(
+		std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
+
+	connection__->connect_on_reply(
 		std::bind(&session::handle_reply,   this, ph::_1, ph::_2, ph::_3));
 	
-	connection->connect_on_join(
+	connection__->connect_on_join(
 		std::bind(&session::handle_join,    this, ph::_1, ph::_2));
 
-	connection->connect_on_part(
+	connection__->connect_on_part(
 		std::bind(&session::handle_part,    this, ph::_1, ph::_2, ph::_3));
 		
-	connection->async_read();
 
-	connection->async_write("USER "+user+" 0 * :test user\r\n");
-	connection->async_write("NICK "+nick+"\r\n");
-	connection->async_write("JOIN #bown_fox\r\n");
-	//connection->connect_on_privmsg(
-		//std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
+	connection__->async_read();
+
+	connection__->async_write("USER "+user+" 0 * :test user\r\n");
+	connection__->async_write("NICK "+nick+"\r\n");
+	connection__->async_write("JOIN #bown_fox\r\n");
 }
 
-session::session(std::shared_ptr<irc_connection> connection_, 
+session::session(std::shared_ptr<connection> connection_, 
                  std::string nick_, 
                  std::string user_) 
-:	connection { std::move(connection_) }
-,	nick { std::move(nick_) } 
-,	user { std::move(user_) } 
+:	connection__ { std::move(connection_) }
+,	nick         { std::move(nick_)       } 
+,	user         { std::move(user_)       } 
 {	
 	prepare_connection();
 }
@@ -70,8 +73,9 @@ session::channel_iterator session::get_or_create_channel(const std::string& chan
 ** HANDLERS
 */ 
 void session::handle_privmsg(const prefix& pfx,
-                             const std::string& target,
+                             const std::vector<std::string>& targets,
                              const std::string& content) {
+	const std::string& target=targets[0];
 	channel_iterator it;
 
 	if(target == nick) { //1 to 1
@@ -110,9 +114,6 @@ void session::handle_join(const prefix& pfx,
 void session::handle_part(const prefix& pfx,	
 			              const std::string& channel,
                           const optional_string& msg) {
-	if(msg) std::cerr << *msg;
-	std::cerr << std::endl;
-
 	//TODO have just get
 	auto it=get_or_create_channel(channel);
 	it->second->remove_user(*pfx.nick, msg);
@@ -144,11 +145,8 @@ void session::handle_reply(const prefix& pfx, int rp,
 		on_motd(motd);
 		break;
 	case numeric_replies::RPL_NAMREPLY:
-		std::cout << "PARAMS: "  << params.size() << std::endl;
 		if(params.size() > 3) { //
 			auto it=get_or_create_channel(params[2]);
-			std::cout << "PARAM3 : " << params.at(3) << "END" << std::endl;
-
 			std::for_each(params.cbegin() + 3, params.cend(),
 				[&](const std::string& param) { 
 					std::istringstream iss { param };

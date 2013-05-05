@@ -10,8 +10,8 @@ message::message(std::chrono::system_clock::time_point time_stamp_,
                  std::string                           content_, 
                  std::string                           user_)
 :	time_stamp { std::move(time_stamp_) }
-,	content    { std::move(content)     }
-,	user       { std::move(user)        }
+,	content    { std::move(content_)    }
+,	user       { std::move(user_)       }
 {	}
 
 channel::channel(std::string name_) 
@@ -61,10 +61,12 @@ channel::message_iterator channel::add_message(const prefix& pfx, std::string co
 	assert(shared_user_it->second); //shared_ptr is valid
 	
 	log.emplace_back(
-			std::chrono::system_clock::now(),
-			std::move(content),
-			*pfx.nick
+		std::chrono::system_clock::now(),
+		std::move(content),
+		*pfx.nick
 	);
+
+	on_message(*pfx.nick, log.back().content);
 
 	return log.end()-1;
 }
@@ -81,13 +83,12 @@ void channel::add_user(const prefix& nick) {
 
 void channel::remove_user(const std::string& nick, const optional_string& msg) {
 	auto it=users.find(nick);
-		if(it!=users.cend()) {
+	if(it!=users.cend()) {
 		auto pfxp=it->second;
 		users.erase(it);
 		on_user_leave(*pfxp, nick, msg);
 	}
 }
-
 
 const std::string& channel::get_name() const {
 	return name;

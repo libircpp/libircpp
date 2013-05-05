@@ -7,7 +7,7 @@
 int main() {
 	try {
 		boost::asio::io_service io_service;
-		auto ic=irc::irc_connection::make_shared(io_service, "irc.freenode.net", "6667");
+		auto ic=irc::connection::make_shared(io_service, "irc.freenode.net", "6667");
 
 		ic->connect_on_resolve([]{ std::cout << "resolved"  << std::endl; });
 

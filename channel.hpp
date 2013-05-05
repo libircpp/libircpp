@@ -23,10 +23,10 @@ using sig_p_s=boost::signal<void(const prefix&, const std::string&)>;
 using shared_prefix=std::shared_ptr<prefix>;
 
 class message {
+public:
 	std::chrono::system_clock::time_point time_stamp;
 	std::string                           content;
 	std::string                           user;
-public:
 	message(std::chrono::system_clock::time_point time_stamp_, 
 	        std::string                           content_, 
 	        std::string                           user);
@@ -44,7 +44,7 @@ class channel {
 	user_container                users;
 	message_container             log;
 //callbacks
-//	sig                           on_message;
+	sig_2s                        on_message;
 	sig_p_s                       on_user_join;
 	sig_p_s_os                    on_user_leave;
 //	sig                           on_user_quit;
@@ -70,12 +70,14 @@ public:
 //getters 
 	const std::string& get_name() const;
 //registration
+	template<typename F> boost::signals::connection connect_on_message(F&& f)
+	{ return on_message.connect(std::move(f)); }
+
 	template<typename F> boost::signals::connection connect_on_user_join(F&& f)
 	{ return on_user_join.connect(std::move(f)); }
 
 	template<typename F> boost::signals::connection connect_on_user_leave(F&& f)
 	{ return on_user_leave.connect(std::move(f)); }
-
 }; //class channel
 
 } //namespace irc

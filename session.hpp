@@ -15,7 +15,7 @@ namespace irc {
 class session {
 	using channel_container                 =std::unordered_map<std::string, std::unique_ptr<channel>>;
 	using channel_iterator                  =channel_container::iterator;
-	std::shared_ptr<irc_connection>          connection;
+	std::shared_ptr<connection>           	 connection__;
 	channel_container                        channels;
 	std::string                              nick, user,
 	                                         motd;
@@ -27,7 +27,7 @@ class session {
 	void prepare_connection();
 //handlers
 	void handle_privmsg(const prefix& pfx,
-	                    const std::string& target,
+	                    const std::vector<std::string>& target,
 	                    const std::string& content);
 	
 	void handle_topic(const std::string& channel,
@@ -47,7 +47,7 @@ class session {
 	channel_iterator create_new_channel(const std::string& channel_name);
 	channel_iterator get_or_create_channel(const std::string& channel_name);
 public:
-	session(std::shared_ptr<irc_connection> connection_,
+	session(std::shared_ptr<connection> connection_,
 	        std::string nick, std::string user_);
 	session(const session&)           =delete;
 	session(session&&)                =delete;

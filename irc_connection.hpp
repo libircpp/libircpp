@@ -18,11 +18,11 @@ namespace irc {
 //callback types
 namespace ph=std::placeholders;
 
-class irc_connection : public std::enable_shared_from_this<irc_connection> {
+class connection : public std::enable_shared_from_this<connection> {
 	using sig_2s=boost::signal<void(std::string, std::string)>;
 	using sig_v =boost::signal<void(void)>;
 public:
-	static std::shared_ptr<irc_connection> make_shared(
+	static std::shared_ptr<connection> make_shared(
 	               boost::asio::io_service& io_service,
 	               std::string host, 
 	               std::string service);
@@ -69,7 +69,7 @@ public:
 	template<typename F> boost::signals::connection connect_on_connect(F&& f) 
 	{ return on_connect.connect(std::forward<F>(f)); }
 
-	irc_connection(boost::asio::io_service& io_service,
+	connection(boost::asio::io_service& io_service,
 	               std::string host, 
 	               std::string service);
 
@@ -77,11 +77,11 @@ public:
 	void async_write(std::string str);
 private:
 	//the move constructors could be achieved using the PIMPL idiom
-	irc_connection()                                =delete;
-	irc_connection(const irc_connection&)           =delete;
-	irc_connection(irc_connection&&)                =delete;
-	irc_connection& operator=(const irc_connection&)=delete;
-	irc_connection& operator=(irc_connection&&)     =delete;
+	connection()                                =delete;
+	connection(const connection&)           =delete;
+	connection(connection&&)                =delete;
+	connection& operator=(const connection&)=delete;
+	connection& operator=(connection&&)     =delete;
 
 	void async_resolve();
 	void async_write_next();
@@ -113,7 +113,7 @@ private:
 	boost::asio::ip::tcp::socket          socket;
 	boost::asio::ip::tcp::resolver        resolver;
 	boost::asio::ip::tcp::resolver::query query;
-}; //class irc_connection
+}; //class connection
 
 } //namespace irc
 

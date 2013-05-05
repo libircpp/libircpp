@@ -69,7 +69,8 @@ void irc_parser::parse_message(const std::string& message) {
 	rule<std::string> user = +~char_(" ?@");
 
 	rule<std::string> word =+(!lit("\r") >> ~char_(" "));
-	rule<std::string> line =lexeme[lit(':') >> *(!lit("\r") >> char_)];
+	rule<std::string> line =lexeme[lit(':') >> *~char_('\r')];
+	//*(!lit("\r") >> char_)];
 
 	rule<prefix> prefix_parser = 
 		lit(':') >> ( nick                    >> -( '!' >> user )        >> -( '@' >> host ) >> lexeme[ ' ' ]
