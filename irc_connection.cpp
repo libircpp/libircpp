@@ -39,6 +39,7 @@ void irc_connection::async_resolve() {
 		)
 	);
 
+	/*
 	parser.connect_on_reply([&](const prefix&                   pfx,
 	                            int                             value,
 	                            const std::vector<std::string>& params) {
@@ -47,6 +48,7 @@ void irc_connection::async_resolve() {
 			std::cout << param << std::endl;			
 		}
 	});
+	*/
 }
 
 void irc_connection::async_read() {
@@ -139,8 +141,6 @@ void irc_connection::handle_resolve(const boost::system::error_code& error,
 
 void irc_connection::handle_connect(const boost::system::error_code& error) {
 	if(!error) {
-		async_read();
-
 		on_connect();
 	}
 	else {

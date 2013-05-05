@@ -68,8 +68,8 @@ void irc_parser::parse_message(const std::string& message) {
  	//RFC 1459 is really vague about user, but no "?" seems like the best way to to deal with it
 	rule<std::string> user = +~char_(" ?@");
 
-	rule<std::string> word =+~char_(" \n\r");
-	rule<std::string> line =lit(':') >> *char_;
+	rule<std::string> word =+(!lit("\r") >> ~char_(" "));
+	rule<std::string> line =lexeme[lit(':') >> *(!lit("\r") >> char_)];
 
 	rule<prefix> prefix_parser = 
 		lit(':') >> ( nick                    >> -( '!' >> user )        >> -( '@' >> host ) >> lexeme[ ' ' ]

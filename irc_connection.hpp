@@ -58,6 +58,9 @@ public:
 	template<typename F> boost::signals::connection connect_on_nick(F&& f) 
 	{ return parser.connect_on_nick(std::forward<F>(f)); }
 
+	template<typename F> boost::signals::connection connect_on_reply(F&& f) 
+	{ return parser.connect_on_reply(std::forward<F>(f)); }
+
 	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
 	{ return on_resolve.connect(std::forward<F>(f)); }
 
@@ -68,6 +71,7 @@ public:
 	               std::string host, 
 	               std::string service);
 
+	void async_read();
 	void async_write(std::string str);
 private:
 	//the move constructors could be achieved using the PIMPL idiom
@@ -78,7 +82,6 @@ private:
 	irc_connection& operator=(irc_connection&&)     =delete;
 
 	void async_resolve();
-	void async_read();
 	void async_write_next();
 
 	void handle_resolve(const boost::system::error_code& error,
