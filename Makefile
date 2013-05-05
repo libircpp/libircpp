@@ -14,7 +14,7 @@ export LFLAGS=$(OPTS)
 
 #slow objects are library elements and spirit parsers 
 SLOW_OBJS=
-FAST_OBJS=irc_connection.o irc_parser.o session.o
+FAST_OBJS=irc_connection.o irc_parser.o session.o channel.o
 
 OBJS=$(SLOW_OBJS) $(FAST_OBJS)
 
