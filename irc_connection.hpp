@@ -1,7 +1,7 @@
 #ifndef IRC_CONNECTION_HPP
 #define IRC_CONNECTION_HPP
 
-#include "irc_parser.hpp"
+#include "parser.hpp"
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/streambuf.hpp>
