@@ -122,7 +122,7 @@ void session::handle_join(const prefix& pfx,
 }
 
 void session::handle_part(const prefix& pfx,	
-			              const std::string& channel,
+                          const std::string& channel,
                           const optional_string& msg) {
 	//TODO have just get
 	auto it=get_or_create_channel(channel);
