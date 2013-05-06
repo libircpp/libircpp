@@ -77,7 +77,7 @@ public:
 	void async_write(std::string str);
 private:
 	//the move constructors could be achieved using the PIMPL idiom
-	connection()                                =delete;
+	connection()                            =delete;
 	connection(const connection&)           =delete;
 	connection(connection&&)                =delete;
 	connection& operator=(const connection&)=delete;

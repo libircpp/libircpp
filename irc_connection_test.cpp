@@ -26,7 +26,7 @@ int main() {
 			//ic->async_write("JOIN #linux\r\n");
 		});
 
-		ic->connect_on_privmsg([&](const prefix& pfx,
+		ic->connect_on_privmsg([&](const irc::prefix& pfx,
 		                           const std::vector<std::string>& to, 
                                    const std::string& msg) {
 			std::cout << "privmsg to: ";
@@ -45,45 +45,45 @@ int main() {
 
 		ic->connect_on_kick([&](const std::string& channel, 
 		                        const std::string& user, 
-								const optional_string& comment) {
+								const irc::optional_string& comment) {
 			std::cout << "user " << user << "  kick from " << channel;
 			if(comment) std::cout << " reason: " << *comment;
 			std::cout << std::endl;
 		});
 
-		ic->connect_on_ping([&](const prefix&          pfx,
+		ic->connect_on_ping([&](const irc::prefix&          pfx,
 		                        const std::string&     server1,
-		                        const optional_string& server2) {
+		                        const irc::optional_string& server2) {
 			std::cout << "Ping from: " << pfx << "  server1   " << server1 << "  server2? " << server2 << std::endl;
 
 			ic->async_write("PONG zebby123432 " + server1 + "\r\n");
 		});
 
-		ic->connect_on_join([&](const prefix&          pfx,
+		ic->connect_on_join([&](const irc::prefix&          pfx,
 		                        const std::string&     chan) {
 			std::cout << pfx << " has joined " << chan << std::endl;
 		});
 
-		ic->connect_on_part([&](const prefix&          pfx,
+		ic->connect_on_part([&](const irc::prefix&          pfx,
 		                        const std::string&     chan,
-		                        const optional_string& msg) {
+		                        const irc::optional_string& msg) {
 
 			std::cout << pfx << " has parted " << chan ;
 			if(msg) std::cout << "  with " << *msg;
 			std::cout << std::endl;
 		});
 
-		ic->connect_on_quit([&](const prefix&      pfx,
+		ic->connect_on_quit([&](const irc::prefix&      pfx,
 		                        const std::string& msg) {
 			std::cout << pfx << " has quit with msg: " << msg << std::endl;
 		});
 
-		ic->connect_on_nick([&](const prefix&      pfx,
+		ic->connect_on_nick([&](const irc::prefix&      pfx,
 		                        const std::string& nick) {
 			std::cout << pfx << "  has set their nick to: " << nick << std::endl;
 		});
 
-		ic->connect_on_reply([&](const prefix&                   pfx,
+		ic->connect_on_reply([&](const irc::prefix&                   pfx,
 	                            int                             value,
 	                            const std::vector<std::string>& params) {
 			std::cout << pfx << " value: " << value << '\n';

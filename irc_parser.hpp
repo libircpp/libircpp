@@ -1,12 +1,11 @@
 #ifndef IRC_PARSER_HPP
 #define IRC_PARSER_HPP
 
-#include <boost/optional.hpp>
-#include <boost/signals.hpp>
+#include "types.hpp"
 
 #include <string>
 
-using optional_string=boost::optional<std::string>;
+namespace irc {
 
 //TODO: move to it's own file
 struct prefix { 
@@ -21,21 +20,8 @@ struct prefix {
 	prefix& operator=(prefix&&)=default;
 	prefix& operator=(const prefix&)=default;
 };
+
 std::ostream& operator<<(std::ostream& os, const prefix& pfx);
-
-using sig_p_s        =boost::signal<void(prefix, std::string)>;
-using sig_p_2s       =boost::signal<void(prefix, std::string, std::string)>;
-
-using sig_s          =boost::signal<void(std::string)>;
-using sig_2s         =boost::signal<void(std::string, std::string)>;
-using sig_s_os       =boost::signal<void(std::string, optional_string)>;
-using sig_2s_os      =boost::signal<void(std::string, std::string, optional_string)>;
-
-//using sig_vs_s       =boost::signal<void(std::vector<std::string>, std::string)>;
-
-using sig_p_i_vs     =boost::signal<void(prefix, int, std::vector<std::string>)>;
-using sig_p_vs_s     =boost::signal<void(prefix, std::vector<std::string>, std::string)>;
-using sig_p_s_os     =boost::signal<void(prefix, std::string, optional_string)>;
 
 class irc_parser {
 	sig_p_vs_s  on_privmsg;
@@ -90,5 +76,6 @@ public:
 	void parse_message(const std::string& message); 
 }; //class irc_parser
 
-#endif //IRC_PARSER_HPP
+} //namespace irc
 
+#endif //IRC_PARSER_HPP

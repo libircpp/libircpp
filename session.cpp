@@ -7,11 +7,11 @@
 #include <tuple> //tie
 #include <sstream> //ostringstream
 #include <stdexcept> //runtime_error
+#include <iostream>
 
 namespace irc {
 
 void session::prepare_connection() {
-	std::cout << "connected" << std::endl;
 	assert(connection__);
 
 	connection__->connect_on_privmsg(
@@ -106,7 +106,6 @@ void session::handle_ping(const prefix& pfx,
 	std::cout << "Ping from: " << pfx << "  server1   " << server1 << "  server2? " << server2 << std::endl;
 	std::ostringstream oss;
 	oss << "PONG " << nick << " " << server1 << "\r\n";
-	//ic->async_write("PONG" + server1 + "\r\n");
 	connection__->async_write(oss.str());
 }
 
@@ -120,8 +119,6 @@ void session::handle_join(const prefix& pfx,
 		on_join_channel(*chan->second);
 	}
 }
-
-
 
 void session::handle_part(const prefix& pfx,	
 			              const std::string& channel,

@@ -12,6 +12,19 @@
 #include <string>
 #include <ostream>
 
+//Must be in global namespace
+BOOST_FUSION_ADAPT_STRUCT(
+	irc::prefix,
+	(irc::optional_string, nick)
+	(irc::optional_string, user)
+	(irc::optional_string, host)
+)
+
+
+namespace irc {
+
+namespace qi =boost::spirit::qi;
+namespace phx=boost::phoenix;
 
 prefix::prefix(optional_string nick_, 
                optional_string user_, 
@@ -30,18 +43,11 @@ std::ostream& operator<<(std::ostream& os, const prefix& pfx) {
 	return os;
 }
 
-BOOST_FUSION_ADAPT_STRUCT(
-	::prefix,
-	(optional_string, nick)
-	(optional_string, user)
-	(optional_string, host)
-)
 
-namespace qi =boost::spirit::qi;
-namespace phx=boost::phoenix;
 
 template<typename T>
 using rule=qi::rule<std::string::const_iterator, T()>;
+
 
 void irc_parser::parse_message(const std::string& message) {
 	auto first=message.cbegin(), last=message.cend();
@@ -94,7 +100,7 @@ void irc_parser::parse_message(const std::string& message) {
 			| ("NICK"    >> line)                          [ phx::bind(phx::ref(on_nick),    _a, _1)     ]
 			//NUMERIC response	
 			//| ( int_     >> (*(!lit(':') >> word) >> -line ))            [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
-			| ( int_     >> *(line | word))                [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
+			//| ( int_     >> *(line | word))                [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
 			)
 			;
 #ifdef IRC_PRNT_DEBUG
@@ -107,3 +113,5 @@ void irc_parser::parse_message(const std::string& message) {
 		std::cerr << "ERROR PARSING: " <<  message << std::endl;
 	}
 }
+
+} //namespace irc

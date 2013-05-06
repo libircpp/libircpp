@@ -15,13 +15,6 @@ enum user_lvl {
 	none, opterator, permission
 };
 
-class channel;
-
-using sig_ch=boost::signal<void(channel&)>;
-using sig_p_s=boost::signal<void(const prefix&, const std::string&)>;
-
-using shared_prefix=std::shared_ptr<prefix>;
-
 class message {
 public:
 	std::chrono::system_clock::time_point time_stamp;

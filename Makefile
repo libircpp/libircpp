@@ -1,8 +1,8 @@
 export CPP  =g++
 export LNK =$(CPP)
 
-#export OPTS         =-O3 -DNDEBUG
-export OPTS         =-O0 -ggdb -DCONS_FAST_COMPILE #-D_GLIBCXX_DEBUG
+export OPTS         =-O3 -DNDEBUG
+#export OPTS         =-O0 -ggdb -DCONS_FAST_COMPILE #-D_GLIBCXX_DEBUG
 
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
@@ -32,7 +32,7 @@ irc_test: $(OBJS) irc_connection_test.o
 	$(CPP) -c $(CFLAGS) $(INC) $< -o $@ 
 
 clean:
-	rm -rf $(OBJS) irc_test
+	rm -rf $(OBJS) irc_test irc_connection_test.o  session_test.o
 
 qclean:
 	rm -rf $(FAST_OBJS) irc_client irc_connection_test.o  session_test.o
