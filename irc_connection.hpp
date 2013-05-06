@@ -28,40 +28,40 @@ public:
 	               std::string service);
 
 	template<typename F> boost::signals::connection connect_on_privmsg(F&& f) 
-	{ return parser.connect_on_privmsg(std::forward<F>(f)); }
+	{ return parser_.connect_on_privmsg(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_notice(F&& f) 
-	{ return parser.connect_on_notice(std::forward<F>(f)); }
+	{ return parser_.connect_on_notice(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_mode(F&& f) 
-	{ return parser.connect_on_mode(std::forward<F>(f)); }
+	{ return parser_.connect_on_mode(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_topic(F&& f) 
-	{ return parser.connect_on_topic(std::forward<F>(f)); }
+	{ return parser_.connect_on_topic(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_kick(F&& f) 
-	{ return parser.connect_on_kick(std::forward<F>(f)); }
+	{ return parser_.connect_on_kick(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_ping(F&& f) 
-	{ return parser.connect_on_ping(std::forward<F>(f)); }
+	{ return parser_.connect_on_ping(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_pong(F&& f) 
-	{ return parser.connect_on_pong(std::forward<F>(f)); }
+	{ return parser_.connect_on_pong(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_join(F&& f) 
-	{ return parser.connect_on_join(std::forward<F>(f)); }
+	{ return parser_.connect_on_join(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_part(F&& f) 
-	{ return parser.connect_on_part(std::forward<F>(f)); }
+	{ return parser_.connect_on_part(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_quit(F&& f) 
-	{ return parser.connect_on_quit(std::forward<F>(f)); }
+	{ return parser_.connect_on_quit(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_nick(F&& f) 
-	{ return parser.connect_on_nick(std::forward<F>(f)); }
+	{ return parser_.connect_on_nick(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_reply(F&& f) 
-	{ return parser.connect_on_reply(std::forward<F>(f)); }
+	{ return parser_.connect_on_reply(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
 	{ return on_resolve.connect(std::forward<F>(f)); }
@@ -104,7 +104,7 @@ private:
 	sig_v  on_resolve;
 	sig_v  on_connect;
 
-	irc_parser parser;
+	parser parser_;
 //asio related
 	const std::string                     delim {"\r\n"};
 	std::deque<std::string>               write_buffer;

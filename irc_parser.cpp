@@ -49,7 +49,7 @@ template<typename T>
 using rule=qi::rule<std::string::const_iterator, T()>;
 
 
-void irc_parser::parse_message(const std::string& message) {
+void parser::parse_message(const std::string& message) {
 	auto first=message.cbegin(), last=message.cend();
 
 	qi::lit_type    lit;
@@ -100,7 +100,7 @@ void irc_parser::parse_message(const std::string& message) {
 			| ("NICK"    >> line)                          [ phx::bind(phx::ref(on_nick),    _a, _1)     ]
 			//NUMERIC response	
 			//| ( int_     >> (*(!lit(':') >> word) >> -line ))            [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
-			//| ( int_     >> *(line | word))                [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
+			| ( int_     >> *(line | word))                [ phx::bind(phx::ref(on_reply),   _a, _1, _2) ]
 			)
 			;
 #ifdef IRC_PRNT_DEBUG

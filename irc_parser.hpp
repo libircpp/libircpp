@@ -23,7 +23,7 @@ struct prefix {
 
 std::ostream& operator<<(std::ostream& os, const prefix& pfx);
 
-class irc_parser {
+class parser {
 	sig_p_vs_s  on_privmsg;
 	sig_2s      on_notice;
 	sig_2s      on_mode;
@@ -74,7 +74,7 @@ public:
 	{ return on_reply.connect(std::forward<F>(f)); }
 
 	void parse_message(const std::string& message); 
-}; //class irc_parser
+}; //class parser
 
 } //namespace irc
 
