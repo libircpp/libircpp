@@ -12,8 +12,12 @@
 namespace irc {
 
 enum user_lvl {
-	none, opterator, permission
+	none, operator_, permission
 };
+
+
+std::tuple<std::string, user_lvl> nick_lvl(std::string nick);
+
 
 class message {
 public:

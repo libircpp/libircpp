@@ -6,6 +6,21 @@
 
 namespace irc {
 
+std::tuple<std::string, user_lvl> nick_lvl(std::string nick) {
+	user_lvl lvl=user_lvl::none;
+	
+	if(!nick.empty() 
+	&& (nick[0]=='@' || nick[0]=='+')) {
+		lvl=(nick[0]=='@')
+		   ?	user_lvl::operator_
+		   :	user_lvl::permission
+		   ;
+		nick.erase(nick.begin());
+	}
+
+	return std::make_tuple(nick, lvl); 
+}
+
 message::message(std::chrono::system_clock::time_point time_stamp_, 
                  std::string                           content_, 
                  std::string                           user_)
@@ -23,9 +38,12 @@ void channel::set_topic(std::string str) {
 	//TODO call on_topic
 }
 
-channel::user_iterator channel::get_or_create_user(const std::string& nick) {
-	auto it=users.find(nick);	
+channel::user_iterator channel::get_or_create_user(const std::string& pr_nick) {
+	std::string nick;
+	std::tie(nick, std::ignore)=nick_lvl(pr_nick);
 
+	auto it=users.find(nick);	
+	
 	if(it==users.cend()) {
 		bool success;
 

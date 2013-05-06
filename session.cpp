@@ -25,7 +25,7 @@ void session::prepare_connection() {
 
 	connection__->connect_on_part(
 		std::bind(&session::handle_part,    this, ph::_1, ph::_2, ph::_3));
-		
+
 	connection__->connect_on_ping(
 		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
 
@@ -56,8 +56,6 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 
 	if(!success)
 		throw std::runtime_error("Unable to insert new channel: " + name); 
-
-	//TODO: on_new_channel;
 
 	return it;
 }
@@ -103,7 +101,6 @@ void session::handle_topic(const std::string& channel, std::string topic) {
 void session::handle_ping(const prefix& pfx, 
                           const std::string& server1,
                           const optional_string& server2) {
-	std::cout << "Ping from: " << pfx << "  server1   " << server1 << "  server2? " << server2 << std::endl;
 	std::ostringstream oss;
 	oss << "PONG " << nick << " " << server1 << "\r\n";
 	connection__->async_write(oss.str());

@@ -2,12 +2,11 @@
 #define IRC_CONNECTION_HPP
 
 #include "parser.hpp"
+#include "types.hpp"
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/ip/tcp.hpp>
-
-#include <boost/signals.hpp>
 
 #include <memory> //shared_ptr
 #include <string>
@@ -16,8 +15,6 @@
 namespace irc {
 
 class connection : public std::enable_shared_from_this<connection> {
-	using sig_2s=boost::signal<void(std::string, std::string)>;
-	using sig_v =boost::signal<void(void)>;
 public:
 	static std::shared_ptr<connection> make_shared(
 	               boost::asio::io_service& io_service,
