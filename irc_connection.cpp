@@ -1,5 +1,7 @@
 #include "irc_connection.hpp"
 
+#include "util.hpp"
+
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
 

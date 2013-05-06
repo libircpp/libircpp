@@ -15,9 +15,6 @@
 
 namespace irc {
 
-//callback types
-namespace ph=std::placeholders;
-
 class connection : public std::enable_shared_from_this<connection> {
 	using sig_2s=boost::signal<void(std::string, std::string)>;
 	using sig_v =boost::signal<void(void)>;
