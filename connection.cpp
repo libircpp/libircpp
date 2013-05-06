@@ -12,9 +12,9 @@
 namespace irc {
 
 std::shared_ptr<connection> connection::make_shared(
-						   boost::asio::io_service& io_service,
-						   std::string host, 
-						   std::string service) {
+                                boost::asio::io_service& io_service,
+                                std::string host, 
+                                std::string service) {
 	auto icp=std::make_shared<connection>(
 		io_service, 
 		std::move(host), 
@@ -25,8 +25,8 @@ std::shared_ptr<connection> connection::make_shared(
 }
 
 connection::connection(boost::asio::io_service& io_service,
-                               std::string host,
-                               std::string service) 
+                       std::string host,
+                       std::string service) 
 :	on_resolve { }
 ,	socket   { io_service                          }
 ,	resolver { io_service                          }
@@ -91,7 +91,7 @@ void connection::handle_read(const boost::system::error_code& error,
 }
 
 void connection::handle_write(const boost::system::error_code& error,
-				                  std::size_t bytes_transferred) {
+                              std::size_t bytes_transferred) {
 	if(error) {
 		//handle error
 	}
@@ -131,7 +131,7 @@ void connection::handle_connect(const boost::system::error_code& error) {
 }
 
 void connection::parse_message(std::string::const_iterator first, 
-                                   std::string::const_iterator last) {
+                               std::string::const_iterator last) {
 }
 
 } //namespace irc
