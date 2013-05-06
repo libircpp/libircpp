@@ -1,7 +1,7 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
-#include "irc_connection.hpp"
+#include "connection.hpp"
 #include "channel.hpp"
 
 #include <chrono>

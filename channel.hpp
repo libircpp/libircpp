@@ -1,7 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "irc_connection.hpp"
+#include "connection.hpp"
 
 #include <boost/signals.hpp>
 

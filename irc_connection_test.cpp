@@ -1,4 +1,4 @@
-#include "irc_connection.hpp"
+#include "connection.hpp"
 
 #include <boost/asio/io_service.hpp>
 
