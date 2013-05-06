@@ -17,6 +17,7 @@ int main() {
 
 		ic->connect_on_connect([&] { 
 			std::cout << "connected" << std::endl; 
+			ic->async_read();
 			ic->async_write("USER test156 0 * :test user\r\n");
 			ic->async_write("NICK test156\r\n");
 			ic->async_write("JOIN #bown_fox\r\n");
@@ -82,6 +83,14 @@ int main() {
 			std::cout << pfx << "  has set their nick to: " << nick << std::endl;
 		});
 
+		ic->connect_on_reply([&](const prefix&                   pfx,
+	                            int                             value,
+	                            const std::vector<std::string>& params) {
+			std::cout << pfx << " value: " << value << '\n';
+			for(const auto& param :  params) {
+				std::cout << param << std::endl;			
+		}
+	});
 
 		io_service.run();
 	}

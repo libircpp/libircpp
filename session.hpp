@@ -30,6 +30,10 @@ class session {
 	                    const std::vector<std::string>& target,
 	                    const std::string& content);
 	
+	void handle_ping(const prefix& pfx,	
+	                 const std::string& channel,
+	                 const optional_string& msg);
+
 	void handle_topic(const std::string& channel,
 	                  std::string        topic);
 
