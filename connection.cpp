@@ -85,19 +85,8 @@ void connection::handle_read(const boost::system::error_code& error,
 		std::istream is { &streambuf };
 		std::string msg;
 		std::getline(is, msg);
-		parser_.parse_message(msg);
-		//can we use?
-		//boost::spirit::istream_iterator { is },
-
-		/*
-		std::string msg { std::istream_iterator<char> { is },
-						  std::istream_iterator<char> {    }};
-
-		parse_message(msg.cbegin(), msg.cend());
-
-		std::cout << msg << std::endl;
-		*/
 		async_read();
+		parser_.parse_message(msg);
 	}
 }
 

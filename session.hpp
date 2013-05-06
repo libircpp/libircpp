@@ -4,7 +4,6 @@
 #include "connection.hpp"
 #include "channel.hpp"
 
-#include <chrono>
 #include <memory> //shared_ptr
 #include <string>
 #include <vector>
@@ -44,6 +43,8 @@ class session {
 	                 const std::string& channel,
 	                 const optional_string& msg);
 
+	void handle_quit(const prefix& pfx,	
+	                 const std::string& channel);
 
 	void handle_reply(const prefix& pfx, int rpl, 
 	                  const std::vector<std::string>& params);
@@ -59,6 +60,11 @@ public:
 	session& operator=(session&&)     =delete;
 
 
+//async interface
+	void async_join(const std::string& channel_name);
+	void async_privmsg(const std::string& target, const std::string& msg);
+
+
 	template<typename F> boost::signals::connection connect_on_motd(F&& f) 
 	{ return on_motd.connect(std::move(f)); }
 
@@ -67,7 +73,6 @@ public:
 		return on_join_channel.connect(std::move(f));
 	}
 }; //class session
-
 
 } //namespace irc
 

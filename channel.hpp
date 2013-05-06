@@ -15,15 +15,14 @@ enum user_lvl {
 	none, operator_, permission
 };
 
-
 std::tuple<std::string, user_lvl> nick_lvl(std::string nick);
-
 
 class message {
 public:
 	std::chrono::system_clock::time_point time_stamp;
 	std::string                           content;
 	std::string                           user;
+	
 	message(std::chrono::system_clock::time_point time_stamp_, 
 	        std::string                           content_, 
 	        std::string                           user);
@@ -36,6 +35,8 @@ class channel {
 	using user_iterator       =user_container::iterator;
 	using message_iterator    =std::vector<message>::iterator;
 
+	//the session is guarenteed to outlast the messages (note unqiue_ptr)
+	session                      *session_;
 	std::string                   name,
 	                              topic;
 	user_container                users;
@@ -51,11 +52,11 @@ class channel {
 	user_iterator get_or_create_user(const prefix& pfx);
 	user_iterator get_or_create_user(const std::string& str);
 public:
-	channel()=default;
+	channel()=delete;
 	channel(const channel&)=delete;
 	channel(channel&& other)=delete; //unfortunatly as signals are non movable
 
-	channel(std::string name);
+	channel(session& session__, std::string name);
 
 	message_iterator add_message(const prefix& pfx, std::string content);
 
@@ -64,6 +65,10 @@ public:
 
 	void remove_user(const std::string& nick, const optional_string& msg);
 	void set_topic(std::string str);
+
+//async
+	void async_send_message(const std::string& str);
+
 //getters 
 	const std::string& get_name() const;
 //registration

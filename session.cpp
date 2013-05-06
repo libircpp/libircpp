@@ -26,6 +26,9 @@ void session::prepare_connection() {
 	connection__->connect_on_part(
 		std::bind(&session::handle_part,    this, ph::_1, ph::_2, ph::_3));
 
+	connection__->connect_on_quit(
+		std::bind(&session::handle_quit,    this, ph::_1, ph::_2));
+
 	connection__->connect_on_ping(
 		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
 
@@ -33,7 +36,6 @@ void session::prepare_connection() {
 
 	connection__->async_write("USER "+user+" 0 * :test user\r\n");
 	connection__->async_write("NICK "+nick+"\r\n");
-	connection__->async_write("JOIN #bown_fox\r\n");
 }
 
 session::session(std::shared_ptr<connection> connection_, 
@@ -51,8 +53,9 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 
 	channel_iterator it;
 	bool             success;
-	
-	std::tie(it, success)=channels.emplace(name, util::make_unique<channel>(name));
+
+	std::tie(it, success)=channels.emplace(
+		name, util::make_unique<channel>(*this, name));
 
 	if(!success)
 		throw std::runtime_error("Unable to insert new channel: " + name); 
@@ -83,6 +86,7 @@ void session::handle_privmsg(const prefix& pfx,
 			it=get_or_create_channel(*pfx.nick);
 		}
 		else {
+			std::cerr << "UNHANDLED CASE: " << std::endl;
 			//TODO log error
 		}
 	}
@@ -125,10 +129,19 @@ void session::handle_part(const prefix& pfx,
 	it->second->remove_user(*pfx.nick, msg);
 }
 
+void session::handle_quit(const prefix& pfx,
+                          const std::string& msg) {
+	if(pfx.nick) {
+		for(auto& channel : channels) {
+			channel.second->remove_user(*pfx.nick, msg);
+		}
+	}
+	else {
+		std::cerr << "QUIT: unknown nick prefix is: " << pfx << std::endl;
+	}
+}
 
-/*
-** numeric responses from the server
-*/
+// numeric responses from the server
 void session::handle_reply(const prefix& pfx, int rp, 
                            const std::vector<std::string>& params) {
 	numeric_replies nr=static_cast<numeric_replies>(rp);
@@ -171,5 +184,21 @@ void session::handle_reply(const prefix& pfx, int rp,
 		break;
 	}
 }
+
+/*
+** async interface
+*/
+void session::async_join(const std::string& channel_name) {
+	std::ostringstream oss;
+	oss << "JOIN " << channel_name << "\r\n";
+	connection__->async_write(oss.str());
+}
+void session::async_privmsg(const std::string& target, const std::string& msg) {
+	std::ostringstream oss;
+	oss << "PRIVMSG " << target << ' ' << msg << "\r\n";
+	connection__->async_write(oss.str());
+}
+
+
 
 } //namespace irc

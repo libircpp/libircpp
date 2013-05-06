@@ -1,4 +1,5 @@
 #include "channel.hpp"
+#include "session.hpp"
 
 #include <string>
 #include <tuple>
@@ -29,8 +30,9 @@ message::message(std::chrono::system_clock::time_point time_stamp_,
 ,	user       { std::move(user_)       }
 {	}
 
-channel::channel(std::string name_) 
-:	name { std::move(name_) }
+channel::channel(session& session__, std::string name_) 
+:	session_ { &session__ }
+,	name     { std::move(name_) }
 {	}
 
 void channel::set_topic(std::string str) {
@@ -74,6 +76,10 @@ channel::user_iterator channel::get_or_create_user(const prefix& pfx) {
 }
 
 channel::message_iterator channel::add_message(const prefix& pfx, std::string content) {
+	if(!pfx.nick) {
+		std::cout << pfx << "HAS FAILED TO SEND: " << content << std::endl;
+	}
+	assert(pfx.nick);
 	auto shared_user_it=get_or_create_user(pfx);
 
 	assert(shared_user_it->second); //shared_ptr is valid
@@ -106,6 +112,12 @@ void channel::remove_user(const std::string& nick, const optional_string& msg) {
 		users.erase(it);
 		on_user_leave(*pfxp, nick, msg);
 	}
+}
+
+void channel::async_send_message(const std::string& str) {
+	assert(session_);
+	session_->async_privmsg(get_name(), str);
+	//TODO more
 }
 
 const std::string& channel::get_name() const {

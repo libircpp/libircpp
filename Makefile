@@ -1,8 +1,8 @@
 export CPP  =g++
 export LNK =$(CPP)
 
-export OPTS         =-O3 -DNDEBUG
-#export OPTS         =-O0 -ggdb -DCONS_FAST_COMPILE #-D_GLIBCXX_DEBUG
+#export OPTS         =-O3 -DNDEBUG
+export OPTS         =-O0 -ggdb -DCONS_FAST_COMPILE #-D_GLIBCXX_DEBUG
 
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
