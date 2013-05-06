@@ -180,7 +180,7 @@ void session::handle_reply(const prefix& pfx, int rp,
 		}
 		break;
 	default:
-		std::cerr << "reply" << rp << std::endl;
+		//std::cerr << "reply" << rp << std::endl;
 		break;
 	}
 }

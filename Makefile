@@ -1,13 +1,14 @@
 export CPP  =g++
 export LNK =$(CPP)
 
-#export OPTS         =-O3 -DNDEBUG
-export OPTS         =-O0 -ggdb -DCONS_FAST_COMPILE #-D_GLIBCXX_DEBUG
+export OPTS         =-O3
+#export OPTS         =-O0 -ggdb 
 
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
 
-export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter 
+export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -DCONS_FAST_COMPILE -DNDEBUG 
+#-D_GLIBCXX_DEBUG
 #-Werror -Wfatal-errors
 
 export LFLAGS=$(OPTS)
@@ -16,9 +17,12 @@ export LFLAGS=$(OPTS)
 SLOW_OBJS=
 FAST_OBJS=connection.o parser.o session.o channel.o
 
-OBJS=$(SLOW_OBJS) $(FAST_OBJS)
+OBJS=$(SLOW_OBJS) $(FAST_OBJS) 
 
-all: irc_test session_test
+all: irc_test session_test irc.o
+
+irc.o: $(OBJS)
+	ld -r $^ $(LFLAGS) -o irc.o 
 
 session_test: $(OBJS) session_test.o
 	$(CPP) $^ $(LFLAGS) $(LIB) -o session_test

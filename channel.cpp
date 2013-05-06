@@ -5,6 +5,8 @@
 #include <tuple>
 #include <stdexcept>
 
+#include <iostream>
+
 namespace irc {
 
 std::tuple<std::string, user_lvl> nick_lvl(std::string nick) {
