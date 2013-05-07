@@ -195,7 +195,7 @@ void session::async_join(const std::string& channel_name) {
 }
 void session::async_privmsg(const std::string& target, const std::string& msg) {
 	std::ostringstream oss;
-	oss << "PRIVMSG " << target << ' ' << msg << "\r\n";
+	oss << "PRIVMSG " << target << " :" << msg << "\r\n";
 	connection__->async_write(oss.str());
 }
 
