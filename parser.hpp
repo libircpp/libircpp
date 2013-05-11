@@ -7,22 +7,6 @@
 
 namespace irc {
 
-//TODO: move to it's own file
-struct prefix { 
-	optional_string nick, user, host; 
-	prefix()=default;
-	prefix(prefix&&)=default;
-	prefix(const prefix&)=default;
-	prefix(optional_string nick_,
-	       optional_string user_, 
-	       optional_string host_);
-
-	prefix& operator=(prefix&&)=default;
-	prefix& operator=(const prefix&)=default;
-};
-
-std::ostream& operator<<(std::ostream& os, const prefix& pfx);
-
 class parser {
 	sig_p_vs_s  on_privmsg;
 	sig_2s      on_notice;

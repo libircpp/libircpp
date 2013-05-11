@@ -1,4 +1,5 @@
 #include "connection.hpp"
+#include "prefix.hpp"
 
 #include <boost/asio/io_service.hpp>
 

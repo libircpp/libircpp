@@ -1,21 +1,23 @@
-export CPP  =g++
+export CPP =g++
 export LNK =$(CPP)
 
-export OPTS         =-O3
-#export OPTS         =-O0 -ggdb 
+#export OPTS         =-O3
+export OPTS         =-O0 -ggdb 
 
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
 
-export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -DCONS_FAST_COMPILE -DNDEBUG 
+export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -DCONS_FAST_COMPILE 
+#-DNDEBUG  
+#-Wfatal-errors
 #-D_GLIBCXX_DEBUG
-#-Werror -Wfatal-errors
+#-Werror
 
 export LFLAGS=$(OPTS)
 
 #slow objects are library elements and spirit parsers 
 SLOW_OBJS=
-FAST_OBJS=connection.o parser.o session.o channel.o
+FAST_OBJS=connection.o parser.o session.o channel.o user.o prefix.o
 
 OBJS=$(SLOW_OBJS) $(FAST_OBJS) 
 

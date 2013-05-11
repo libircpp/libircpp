@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "prefix.hpp"
 
 #define BOOST_RESULT_OF_USE_DECLTYPE         1
 #define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS 1
@@ -26,25 +27,6 @@ namespace irc {
 namespace qi =boost::spirit::qi;
 namespace phx=boost::phoenix;
 
-prefix::prefix(optional_string nick_, 
-               optional_string user_, 
-               optional_string host_) 
-:	nick { std::move(nick_) }
-,	user { std::move(user_) }
-,	host { std::move(host_) }
-{	}
-
-std::ostream& operator<<(std::ostream& os, const prefix& pfx) {
-	if(pfx.nick) os << '<' << *pfx.nick << '>';
-	if(pfx.nick && pfx.user) os << "!";
-	if(pfx.user) os << '<' << *pfx.user << '>';
-	if(pfx.host && ( pfx.nick || pfx.user )) os << "@";
-	if(pfx.host) os << '<' <<  *pfx.host << '>';
-	return os;
-}
-
-
-
 template<typename T>
 using rule=qi::rule<std::string::const_iterator, T()>;
 
@@ -61,12 +43,8 @@ void parser::parse_message(const std::string& message) {
 	qi::_3_type     _3;
 	qi::_a_type     _a;
 	
-	qi::alpha_type  alpha;
-	qi::alnum_type  alnum;
-
 	qi::lexeme_type lexeme;
 	qi::attr_type   attr;
-
  
 	//rule<std::string> nick = alpha >> *( alnum | char_("|-[]\\`^{}_") );
 	rule<std::string> nick = +~char_(" :@?!"); 

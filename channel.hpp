@@ -1,86 +1,72 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "connection.hpp"
+#include "types.hpp"
 
-#include <boost/signals.hpp>
-
+#include <set>
 #include <string>
-#include <chrono>
-#include <unordered_map>
 
 namespace irc {
 
-enum user_lvl {
-	none, operator_, permission
-};
-
-std::tuple<std::string, user_lvl> nick_lvl(std::string nick);
-
-class message {
-public:
-	std::chrono::system_clock::time_point time_stamp;
-	std::string                           content;
-	std::string                           user;
-	
-	message(std::chrono::system_clock::time_point time_stamp_, 
-	        std::string                           content_, 
-	        std::string                           user);
-}; //class message
-
 class channel {
-	using user_container      =std::unordered_map<std::string, shared_prefix>;
-	using message_container   =std::vector<message>;
-
-	using user_iterator       =user_container::iterator;
-	using message_iterator    =std::vector<message>::iterator;
-
-	//the session is guarenteed to outlast the messages (note unqiue_ptr)
-	session                      *session_;
-	std::string                   name,
-	                              topic;
-	user_container                users;
-	message_container             log;
-//callbacks
-	sig_2s                        on_message;
-	sig_p_s                       on_user_join;
-	sig_p_s_os                    on_user_leave;
-//	sig                           on_user_quit;
-//	sig                           on_topic;
-//	sig                           on_kick;
+	std::string           name;
+	std::string           topic;
+	std::set<shared_user> users;
+//signals
+	sig_ch_usr_s  on_message;
+	sig_ch_s      on_topic_change;
+	sig_ch_usr    on_user_join;
+	sig_ch_usr_os on_user_part;
 //helpers
-	user_iterator get_or_create_user(const prefix& pfx);
-	user_iterator get_or_create_user(const std::string& str);
+	void add_user(const shared_user& user);
+//deleted functions
+	channel(const channel&)           =delete;
+	channel(channel&&)                =delete;
+	channel& operator=(const channel&)=delete;
+	channel& operator=(channel&&)     =delete;
 public:
-	channel()=delete;
-	channel(const channel&)=delete;
-	channel(channel&& other)=delete; //unfortunatly as signals are non movable
+	channel(std::string name_);
 
-	channel(session& session__, std::string name);
+	//USER INTERFACE
+	const std::string& get_name()  const;
+	const std::string& get_topic() const;
 
-	message_iterator add_message(const prefix& pfx, std::string content);
+	//SYSTEM INTERFACE
+	void message(const shared_user& user, const std::string message);
+	void user_part(const shared_user& user, const optional_string& msg);
+	void user_join(const shared_user& user);
+	void user_quit(const shared_user& user, const std::string& msg);
+	void set_topic(std::string str); 
 
-	void add_user(const std::string& nick);
-	void add_user(const prefix& pfx);
-
-	void remove_user(const std::string& nick, const optional_string& msg);
-	void set_topic(std::string str);
-
-//async
-	void async_send_message(const std::string& str);
-
-//getters 
-	const std::string& get_name() const;
-//registration
-	template<typename F> boost::signals::connection connect_on_message(F&& f)
-	{ return on_message.connect(std::move(f)); }
-
-	template<typename F> boost::signals::connection connect_on_user_join(F&& f)
-	{ return on_user_join.connect(std::move(f)); }
-
-	template<typename F> boost::signals::connection connect_on_user_leave(F&& f)
-	{ return on_user_leave.connect(std::move(f)); }
+	template<typename F>
+	bsig::connection connect_on_message(F&& f);
+	template<typename F>
+	bsig::connection connect_on_topic_change(F&& f);
+	template<typename F>
+	bsig::connection connect_on_user_join(F&& f);
+	template<typename F>
+	bsig::connection connect_on_user_part(F&& f);
 }; //class channel
+
+
+// Template impl
+template<typename F>
+bsig::connection channel::connect_on_message(F&& f) {
+	return on_message.connect(std::forward<F>(f));	
+}
+template<typename F>
+bsig::connection channel::connect_on_user_join(F&& f) {
+	return on_user_join.connect(std::forward<F>(f));	
+}
+template<typename F>
+bsig::connection channel::connect_on_user_part(F&& f) {
+	return on_user_part.connect(std::forward<F>(f));	
+}
+template<typename F>
+bsig::connection channel::connect_on_topic_change(F&& f) {
+	return on_topic_change.connect(std::forward<F>(f));	
+}
+
 
 } //namespace irc
 

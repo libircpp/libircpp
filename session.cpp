@@ -1,4 +1,8 @@
+#include "connection.hpp"
 #include "session.hpp"
+#include "channel.hpp"
+#include "prefix.hpp"
+#include "user.hpp"
 
 #include "numeric_replies.hpp"
 
@@ -34,16 +38,16 @@ void session::prepare_connection() {
 
 	connection__->async_read();
 
-	connection__->async_write("USER "+user+" 0 * :test user\r\n");
+	connection__->async_write("USER "+user_name+" 0 * :test user\r\n");
 	connection__->async_write("NICK "+nick+"\r\n");
 }
 
 session::session(std::shared_ptr<connection> connection_, 
                  std::string nick_, 
-                 std::string user_) 
+                 std::string user_name_) 
 :	connection__ { std::move(connection_) }
 ,	nick         { std::move(nick_)       } 
-,	user         { std::move(user_)       } 
+,	user_name    { std::move(user_name_)  } 
 {	
 	prepare_connection();
 }
@@ -55,7 +59,7 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 	bool             success;
 
 	std::tie(it, success)=channels.emplace(
-		name, util::make_unique<channel>(*this, name));
+		name, std::make_shared<channel>(name));
 
 	if(!success)
 		throw std::runtime_error("Unable to insert new channel: " + name); 
@@ -72,6 +76,41 @@ session::channel_iterator session::get_or_create_channel(const std::string& chan
 		return create_new_channel(channel_name);
 }
 
+session::user_iterator session::create_new_user(const std::string& name, 
+                                                const prefix& pfx) {
+	assert(users.count(name)==0);
+	user_iterator it;
+	bool          success;
+
+	std::tie(it, success)=users.emplace(
+		name, std::make_shared<user>(name, pfx));
+
+	if(!success)
+		throw std::runtime_error("Unable to insert new user: " + name); 
+
+	return it;
+}
+
+session::user_iterator session::get_or_create_user(const std::string& user_name) {
+	auto it=users.find(user_name);
+
+	if(it!=users.cend())
+		return it;
+	else 
+		return create_new_user(user_name, { user_name });
+}
+
+session::user_iterator session::get_or_create_user(const prefix& pfx) {
+	assert(pfx.nick);
+	auto it=users.find(*pfx.nick);
+
+	if(it!=users.cend())
+		return it;
+	else 
+		return create_new_user(*pfx.nick, pfx);
+}
+
+
 /*
 ** HANDLERS
 */ 
@@ -79,27 +118,26 @@ void session::handle_privmsg(const prefix& pfx,
                              const std::vector<std::string>& targets,
                              const std::string& content) {
 	const std::string& target=targets[0];
-	channel_iterator it;
-
-	if(target == nick) { //1 to 1
-		if(pfx.nick) { //nick is an optional
-			it=get_or_create_channel(*pfx.nick);
+	if(pfx.nick) { //nick is an optional
+		auto user=get_or_create_user(pfx)->second; 
+		assert(user);
+		if(target == nick) { //1 to 1
+			user->direct_message(content);
 		}
-		else {
-			std::cerr << "UNHANDLED CASE: " << std::endl;
-			//TODO log error
+		else { //1 to channel 
+			auto chan=get_or_create_channel(target)->second;
+			assert(chan);
+
+			chan->message(user, content);
+			user->channel_message(chan, content);
 		}
 	}
-	else { //1 to channel 
-		it=get_or_create_channel(target);
-	}
-
-	it->second->add_message(pfx, content);
 }
 
 void session::handle_topic(const std::string& channel, std::string topic) {
-	auto it=get_or_create_channel(channel);
-	it->second->set_topic(std::move(topic));
+	auto chan=get_or_create_channel(channel)->second;
+	assert(chan);
+	chan->set_topic(std::move(topic));
 }
 
 void session::handle_ping(const prefix& pfx, 
@@ -112,12 +150,15 @@ void session::handle_ping(const prefix& pfx,
 
 void session::handle_join(const prefix& pfx,
                           const std::string& channel) {
-	auto chan=get_or_create_channel(channel);
-	if(pfx.nick && *pfx.nick != nick) {
-		chan->second->add_user(pfx);
-	}
-	else {
-		on_join_channel(*chan->second);
+	if(pfx.nick) {
+		auto chan=get_or_create_channel(channel)->second;
+		auto user=get_or_create_user(pfx)->second;
+		assert(chan);
+		assert(user);
+		chan->user_join(user);
+		if(user->get_nick() == nick) { //is_me?
+			on_join_channel(*chan);
+		}
 	}
 }
 
@@ -125,16 +166,28 @@ void session::handle_part(const prefix& pfx,
                           const std::string& channel,
                           const optional_string& msg) {
 	//TODO have just get
-	auto it=get_or_create_channel(channel);
-	it->second->remove_user(*pfx.nick, msg);
+	auto chan=get_or_create_channel(channel)->second;
+	auto user_it=get_or_create_user(pfx);
+	auto user=user_it->second;
+
+	assert(chan);
+	assert(user);
+
+	chan->user_part(user, msg);
+
+	users.erase(user_it);
 }
 
 void session::handle_quit(const prefix& pfx,
                           const std::string& msg) {
 	if(pfx.nick) {
+		auto user_it=get_or_create_user(pfx); //todo: optimise
+		auto user   =user_it->second;
+
 		for(auto& channel : channels) {
-			channel.second->remove_user(*pfx.nick, msg);
+			channel.second->user_quit(user, msg);
 		}
+		users.erase(user_it);
 	}
 	else {
 		std::cerr << "QUIT: unknown nick prefix is: " << pfx << std::endl;
@@ -165,7 +218,10 @@ void session::handle_reply(const prefix& pfx, int rp,
 		break;
 	case numeric_replies::RPL_NAMREPLY:
 		if(params.size() > 3) { //
-			auto it=get_or_create_channel(params[2]);
+
+			auto chan=get_or_create_channel(params[2])->second;
+			assert(chan);
+
 			std::for_each(params.cbegin() + 3, params.cend(),
 				[&](const std::string& param) { 
 					std::istringstream iss { param };
@@ -173,7 +229,11 @@ void session::handle_reply(const prefix& pfx, int rp,
 						std::istream_iterator<std::string> { iss },
 						std::istream_iterator<std::string> {     },
 						[&](const std::string& nick)
-						{ it->second->add_user(nick); }
+						{ 
+							auto user=get_or_create_user(nick)->second;
+							assert(user);
+							chan->user_join(user); 
+						}
 					);
 				}
 			);
