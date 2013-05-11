@@ -24,6 +24,9 @@ void session::prepare_connection() {
 	connection__->connect_on_reply(
 		std::bind(&session::handle_reply,   this, ph::_1, ph::_2, ph::_3));
 	
+	connection__->connect_on_topic(
+		std::bind(&session::handle_topic,   this, ph::_1, ph::_2));
+
 	connection__->connect_on_join(
 		std::bind(&session::handle_join,    this, ph::_1, ph::_2));
 
@@ -59,7 +62,7 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 	bool             success;
 
 	std::tie(it, success)=channels.emplace(
-		name, std::make_shared<channel>(name));
+		name, std::make_shared<channel>(*this, name));
 
 	if(!success)
 		throw std::runtime_error("Unable to insert new channel: " + name); 
@@ -237,6 +240,12 @@ void session::handle_reply(const prefix& pfx, int rp,
 					);
 				}
 			);
+		}
+		break;
+	case numeric_replies::RPL_TOPIC:
+		if(params.size() > 2) {
+			auto chan=get_or_create_channel(params[1])->second;
+			chan->set_topic(params[2]);
 		}
 		break;
 	default:

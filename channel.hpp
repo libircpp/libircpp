@@ -9,6 +9,7 @@
 namespace irc {
 
 class channel {
+	session&              session_;
 	std::string           name;
 	std::string           topic;
 	std::set<shared_user> users;
@@ -25,7 +26,7 @@ class channel {
 	channel& operator=(const channel&)=delete;
 	channel& operator=(channel&&)     =delete;
 public:
-	channel(std::string name_);
+	channel(session& connection__, std::string name_);
 
 	//USER INTERFACE
 	const std::string& get_name()  const;

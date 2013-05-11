@@ -4,8 +4,9 @@
 
 namespace irc {
 
-channel::channel(std::string name_)
-:	name { std::move(name_) }
+channel::channel(session& session__, std::string name_)
+:	session_ ( session__        )
+,	name     { std::move(name_) }
 {	}
 
 /*

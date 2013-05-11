@@ -21,7 +21,7 @@ int main() {
 			ic->async_read();
 			ic->async_write("USER test156 0 * :test user\r\n");
 			ic->async_write("NICK test156\r\n");
-			ic->async_write("JOIN #bown_fox\r\n");
+			ic->async_write("JOIN #hhjjkk\r\n");
 			//ic->async_write("JOIN #jumped_over\r\n");
 			//ic->async_write("JOIN #lazy_dog\r\n");
 			//ic->async_write("JOIN #linux\r\n");
