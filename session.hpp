@@ -25,6 +25,8 @@ class session {
 //callback
 	sig_s                                    on_motd;
 	sig_ch                                   on_join_channel;
+	sig_s                                    on_notice;
+	sig_usr_s                                on_user_notice;
 //helper
 	void prepare_connection();
 	channel_iterator create_new_channel(const std::string& channel_name);
@@ -38,6 +40,10 @@ class session {
 	void handle_privmsg(const prefix&                   pfx,
 	                    const std::vector<std::string>& target,
 	                    const std::string&              content);
+
+	void handle_notice (const prefix&                   pfx,
+	                    const std::string&              nick,
+	                    const std::string&              msg);
 	
 	void handle_ping(   const prefix&                   pfx,	
 	                    const std::string&              channel,
@@ -73,15 +79,28 @@ public:
 	void async_join(const std::string& channel_name);
 	void async_privmsg(const std::string& target, const std::string& msg);
 
-
-	template<typename F> boost::signals::connection connect_on_motd(F&& f) 
-	{ return on_motd.connect(std::move(f)); }
-
 	template<typename F> 
-	boost::signals::connection connect_on_join_channel(F&& f) {
-		return on_join_channel.connect(std::move(f));
-	}
+	bsig::connection connect_on_motd(F&& f);
+	template<typename F> 
+	bsig::connection connect_on_join_channel(F&& f);
+	template<typename F> 
+	bsig::connection connect_on_notice(F&& f);
 }; //class session
+
+
+
+template<typename F> 
+bsig::connection session::connect_on_motd(F&& f) { 
+	return on_motd.connect(std::move(f)); 
+}
+template<typename F> 
+bsig::connection session::connect_on_join_channel(F&& f) {
+	return on_join_channel.connect(std::move(f));
+}
+template<typename F> 
+bsig::connection session::connect_on_notice(F&& f) {
+	return on_notice.connect(std::move(f));
+}
 
 } //namespace irc
 

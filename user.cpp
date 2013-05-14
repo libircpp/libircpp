@@ -46,5 +46,8 @@ void user::direct_message(const std::string& message) {
 	on_direct_message(*this, message);
 }
 
+void user::notice(const std::string& msg) {
+	on_notice(*this, msg);	
+}
 
 } //namespace irc

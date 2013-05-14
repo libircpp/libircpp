@@ -15,6 +15,7 @@ class user {
 	sig_ch_usr_s on_channel_message;
 	sig_usr_s    on_direct_message;
 	sig_usr_s    on_nick_change;
+	sig_usr_s    on_notice;
 //deleted functions
 	user(const user&)           =delete;
 	user(user&&)                =delete;
@@ -34,14 +35,16 @@ public:
 	void channel_message(const shared_channel& chan, 
 	                     const std::string& message);
 	void direct_message(const std::string& message);
-
-
+	void notice(const std::string& notice);
+	
 	template<typename F>
 	bsig::connection connect_on_channel_message(F&& f);
 	template<typename F>
 	bsig::connection connect_on_direct_message(F&& f);
 	template<typename F>
 	bsig::connection connect_on_nick_change(F&& f);
+	template<typename F>
+	bsig::connection connect_on_notice(F&& f);
 }; //class user
 
 template<typename F>
@@ -55,6 +58,10 @@ bsig::connection user::connect_on_direct_message(F&& f) {
 template<typename F>
 bsig::connection user::connect_on_nick_change(F&& f) {
 	return on_nick_change.connect(std::forward<F>(f));
+}
+template<typename F>
+bsig::connection user::connect_on_notice(F&& f) {
+	return on_notice.connect(std::forward<F>(f));
 }
 
 } //namespace irc

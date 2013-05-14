@@ -9,7 +9,7 @@ namespace irc {
 
 class parser {
 	sig_p_vs_s  on_privmsg;
-	sig_2s      on_notice;
+	sig_p_2s    on_notice;
 	sig_2s      on_mode;
 	sig_2s      on_topic;
 	sig_2s_os   on_kick;

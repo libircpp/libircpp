@@ -28,6 +28,7 @@ public:
 	}
 
 	void handle_connect(std::shared_ptr<irc::connection> connection) {
+		std::cout << "connected" << std::endl;
 		assert(connection);
 		sessions.push_back(
 			util::make_unique<irc::session>(

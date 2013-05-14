@@ -14,7 +14,9 @@ namespace irc {
 	class message;
 	class session;
 
+	namespace {
 	namespace bsig=boost::signals;
+	}
 
 	using optional_string=boost::optional<std::string>;
 	using sig_p_2s       =boost::signal<void(prefix, std::string, std::string)>;

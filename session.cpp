@@ -21,6 +21,9 @@ void session::prepare_connection() {
 	connection__->connect_on_privmsg(
 		std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
 
+	connection__->connect_on_notice(
+		std::bind(&session::handle_notice,  this, ph::_1, ph::_2, ph::_3));
+
 	connection__->connect_on_reply(
 		std::bind(&session::handle_reply,   this, ph::_1, ph::_2, ph::_3));
 	
@@ -38,6 +41,8 @@ void session::prepare_connection() {
 
 	connection__->connect_on_ping(
 		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
+
+	
 
 	connection__->async_read();
 
@@ -134,6 +139,21 @@ void session::handle_privmsg(const prefix& pfx,
 			chan->message(user, content);
 			user->channel_message(chan, content);
 		}
+	}
+}
+
+
+void session::handle_notice (const prefix&      pfx,
+                             const std::string& target,
+                             const std::string& msg) {
+	if(pfx.nick) {
+		auto user=get_or_create_user(pfx)->second;
+		assert(user);
+		user->notice(msg);
+		on_user_notice(*user, msg);
+	}
+	else {
+		on_notice(msg);
 	}
 }
 

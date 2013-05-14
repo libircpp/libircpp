@@ -12,9 +12,11 @@ int main() {
 
 		ic->connect_on_resolve([]{ std::cout << "resolved"  << std::endl; });
 
+		/*
 		ic->connect_on_notice([](const std::string& host, const std::string& notice) {
 			std::cout << "notice from: " << host << " -> " << notice << std::endl;
 		});
+		*/
 
 		ic->connect_on_connect([&] { 
 			std::cout << "connected" << std::endl; 
@@ -34,6 +36,12 @@ int main() {
 			for(const auto& s : to) std::cout << s << " ";
 
 			std::cout << "from: " << pfx << " -> " << msg << std::endl;
+		});
+
+		ic->connect_on_notice([&](const irc::prefix& pfx,
+		                          const std::string& nick,
+		                          const std::string& msg) {
+			std::cout << "notice to: " << nick <<" from " << pfx << " -> " << msg << std::endl;
 		});
 
 		ic->connect_on_mode([&](const std::string& target, const std::string& mode) {
