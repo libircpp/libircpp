@@ -1,4 +1,5 @@
 #include "channel.hpp"
+#include "session.hpp"
 
 #include <utility>
 
@@ -30,6 +31,10 @@ const std::string& channel::get_name() const {
 
 const std::string& channel::get_topic() const {
 	return name;
+}
+
+void channel::async_send_message(const std::string& msg) {
+	session_.async_privmsg(get_name(), msg);
 }
 
 

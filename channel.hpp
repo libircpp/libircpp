@@ -32,6 +32,8 @@ public:
 	const std::string& get_name()  const;
 	const std::string& get_topic() const;
 
+	void async_send_message(const std::string& msg);
+
 	//SYSTEM INTERFACE
 	void message(const shared_user& user, const std::string message);
 	void user_part(const shared_user& user, const optional_string& msg);
