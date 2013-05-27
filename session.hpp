@@ -78,6 +78,7 @@ public:
 //async interface
 	void async_join(const std::string& channel_name);
 	void async_privmsg(const std::string& target, const std::string& msg);
+	void async_change_nick(const std::string& target);
 
 	template<typename F> 
 	bsig::connection connect_on_motd(F&& f);

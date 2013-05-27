@@ -287,7 +287,12 @@ void session::async_privmsg(const std::string& target, const std::string& msg) {
 	oss << "PRIVMSG " << target << " :" << msg << "\r\n";
 	connection__->async_write(oss.str());
 }
-
+void session::async_change_nick(const std::string& desired_nick) {
+	std::ostringstream oss;
+	//oss << ':' << nick << " NICK " << desired_nick ;//<< "\r\n";
+	oss << "NICK " << desired_nick << "\r\n";
+	connection__->async_write(oss.str());
+}
 
 
 } //namespace irc
