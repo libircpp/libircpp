@@ -274,6 +274,10 @@ void session::handle_reply(const prefix& pfx, int rp,
 	}
 }
 
+const std::string& session::get_nick() const {
+	return nick;
+}
+
 /*
 ** async interface
 */

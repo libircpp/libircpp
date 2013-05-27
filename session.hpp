@@ -75,6 +75,8 @@ public:
 	        std::string nick, std::string user_name_);
 
 
+	const std::string& get_nick() const;
+
 //async interface
 	void async_join(const std::string& channel_name);
 	void async_privmsg(const std::string& target, const std::string& msg);
