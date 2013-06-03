@@ -298,5 +298,4 @@ void session::async_change_nick(const std::string& desired_nick) {
 	connection__->async_write(oss.str());
 }
 
-
 } //namespace irc

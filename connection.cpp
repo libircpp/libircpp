@@ -83,10 +83,15 @@ void connection::handle_read(const boost::system::error_code& error,
 	}
 	else {
 		std::istream is { &streambuf };
-		std::string msg;
-		std::getline(is, msg);
+		std::vector<std::string> msgs;
+		std::string t;
+		while(std::getline(is, t)) { //deplete the stream
+			msgs.push_back(t);
+		}
 		async_read();
-		parser_.parse_message(msg);
+		for(auto& msg : msgs) {
+			parser_.parse_message(msg);
+		}
 	}
 }
 
@@ -128,10 +133,6 @@ void connection::handle_connect(const boost::system::error_code& error) {
 	else {
 		//handle error
 	}
-}
-
-void connection::parse_message(std::string::const_iterator first, 
-                               std::string::const_iterator last) {
 }
 
 } //namespace irc
