@@ -1,6 +1,7 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
+#include "parser.hpp"
 #include "types.hpp"
 
 #include <memory> //shared_ptr
@@ -18,6 +19,7 @@ class session {
 	using user_container                    =std::unordered_map<std::string, shared_user>;
 	using user_iterator                     =user_container::iterator;
 //member variables
+	parser parser_;
 	std::shared_ptr<connection>           	 connection__;
 	channel_container                        channels;
 	user_container                           users;
@@ -81,6 +83,8 @@ public:
 	void async_join(const std::string& channel_name);
 	void async_privmsg(const std::string& target, const std::string& msg);
 	void async_change_nick(const std::string& target);
+
+	void stop(); //async_stop?
 
 	template<typename F> 
 	bsig::connection connect_on_motd(F&& f);

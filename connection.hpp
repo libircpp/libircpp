@@ -15,53 +15,23 @@
 namespace irc {
 
 class connection : public std::enable_shared_from_this<connection> {
+	enum class state { 
+		resolving, active, stopped
+	};
 public:
 	static std::shared_ptr<connection> make_shared(
 	               boost::asio::io_service& io_service,
 	               std::string host, 
 	               std::string service);
 
-	template<typename F> boost::signals::connection connect_on_privmsg(F&& f) 
-	{ return parser_.connect_on_privmsg(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_notice(F&& f) 
-	{ return parser_.connect_on_notice(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_mode(F&& f) 
-	{ return parser_.connect_on_mode(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_topic(F&& f) 
-	{ return parser_.connect_on_topic(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_kick(F&& f) 
-	{ return parser_.connect_on_kick(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_ping(F&& f) 
-	{ return parser_.connect_on_ping(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_pong(F&& f) 
-	{ return parser_.connect_on_pong(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_join(F&& f) 
-	{ return parser_.connect_on_join(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_part(F&& f) 
-	{ return parser_.connect_on_part(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_quit(F&& f) 
-	{ return parser_.connect_on_quit(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_nick(F&& f) 
-	{ return parser_.connect_on_nick(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_reply(F&& f) 
-	{ return parser_.connect_on_reply(std::forward<F>(f)); }
-
 	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
 	{ return on_resolve.connect(std::forward<F>(f)); }
 
 	template<typename F> boost::signals::connection connect_on_connect(F&& f) 
 	{ return on_connect.connect(std::forward<F>(f)); }
+
+	template<typename F> boost::signals::connection connect_on_read_msg(F&& f) 
+	{ return on_read_msg.connect(std::forward<F>(f)); }
 
 	connection(boost::asio::io_service& io_service,
 	               std::string host, 
@@ -87,13 +57,15 @@ private:
 	                    std::size_t bytes_transferred);
 	void handle_write(  const boost::system::error_code& error,
 	                    std::size_t bytes_transferred);
+
+	const std::string                     delim {"\r\n"};
+	state  state_ { state::resolving };
 //signals
 	sig_v  on_resolve;
 	sig_v  on_connect;
+	sig_s  on_read_msg;
 
-	parser parser_;
 //asio related
-	const std::string                     delim {"\r\n"};
 	std::deque<std::string>               write_buffer;
 
 	boost::asio::streambuf                streambuf;

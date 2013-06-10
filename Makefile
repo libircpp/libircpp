@@ -21,7 +21,9 @@ FAST_OBJS=connection.o parser.o session.o channel.o user.o prefix.o
 
 OBJS=$(SLOW_OBJS) $(FAST_OBJS) 
 
-all: irc_test session_test irc.o
+all: irc.o
+
+#irc_test session_test 
 
 irc.o: $(OBJS)
 	ld -r $^ $(LFLAGS) -o irc.o 

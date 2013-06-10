@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <iostream>
+#include <fstream>
 #include <string>
 
 namespace irc {
@@ -85,13 +86,15 @@ void connection::handle_read(const boost::system::error_code& error,
 		std::istream is { &streambuf };
 		std::vector<std::string> msgs;
 		std::string t;
-		while(std::getline(is, t)) { //deplete the stream
+		if(std::getline(is, t)) { //deplete the stream
 			msgs.push_back(t);
+		std::ofstream of { "err", std::ofstream::app };
+		for(auto& msg : msgs) {
+			of << msg << "\n\n";
+			on_read_msg(msg);
+		}
 		}
 		async_read();
-		for(auto& msg : msgs) {
-			parser_.parse_message(msg);
-		}
 	}
 }
 

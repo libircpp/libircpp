@@ -18,34 +18,13 @@ namespace irc {
 void session::prepare_connection() {
 	assert(connection__);
 
-	connection__->connect_on_privmsg(
-		std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
-
-	connection__->connect_on_notice(
-		std::bind(&session::handle_notice,  this, ph::_1, ph::_2, ph::_3));
-
-	connection__->connect_on_reply(
-		std::bind(&session::handle_reply,   this, ph::_1, ph::_2, ph::_3));
-	
-	connection__->connect_on_topic(
-		std::bind(&session::handle_topic,   this, ph::_1, ph::_2));
-
-	connection__->connect_on_join(
-		std::bind(&session::handle_join,    this, ph::_1, ph::_2));
-
-	connection__->connect_on_part(
-		std::bind(&session::handle_part,    this, ph::_1, ph::_2, ph::_3));
-
-	connection__->connect_on_quit(
-		std::bind(&session::handle_quit,    this, ph::_1, ph::_2));
-
-	connection__->connect_on_ping(
-		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
-
-	
+	connection__->connect_on_read_msg(
+		[&](const std::string& msg) {
+			parser_.parse_message(msg);
+		}
+	);
 
 	connection__->async_read();
-
 	connection__->async_write("USER "+user_name+" 0 * :test user\r\n");
 	connection__->async_write("NICK "+nick+"\r\n");
 }
@@ -57,6 +36,31 @@ session::session(std::shared_ptr<connection> connection_,
 ,	nick         { std::move(nick_)       } 
 ,	user_name    { std::move(user_name_)  } 
 {	
+	parser_.connect_on_privmsg(
+		std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
+
+	parser_.connect_on_notice(
+		std::bind(&session::handle_notice,  this, ph::_1, ph::_2, ph::_3));
+
+	parser_.connect_on_reply(
+		std::bind(&session::handle_reply,   this, ph::_1, ph::_2, ph::_3));
+	
+	parser_.connect_on_topic(
+		std::bind(&session::handle_topic,   this, ph::_1, ph::_2));
+
+	parser_.connect_on_join(
+		std::bind(&session::handle_join,    this, ph::_1, ph::_2));
+
+	parser_.connect_on_part(
+		std::bind(&session::handle_part,    this, ph::_1, ph::_2, ph::_3));
+
+	parser_.connect_on_quit(
+		std::bind(&session::handle_quit,    this, ph::_1, ph::_2));
+
+	parser_.connect_on_ping(
+		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
+
+
 	prepare_connection();
 }
 
@@ -297,5 +301,12 @@ void session::async_change_nick(const std::string& desired_nick) {
 	oss << "NICK " << desired_nick << "\r\n";
 	connection__->async_write(oss.str());
 }
+
+void session::stop() {
+	if(connection__) {
+	//	connection__->stop();
+	}
+}
+
 
 } //namespace irc
