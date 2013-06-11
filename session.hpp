@@ -86,12 +86,9 @@ public:
 
 	void stop(); //async_stop?
 
-	template<typename F> 
-	bsig::connection connect_on_motd(F&& f);
-	template<typename F> 
-	bsig::connection connect_on_join_channel(F&& f);
-	template<typename F> 
-	bsig::connection connect_on_notice(F&& f);
+	template<typename F> bsig::connection connect_on_motd(F&& f);
+	template<typename F> bsig::connection connect_on_join_channel(F&& f);
+	template<typename F> bsig::connection connect_on_notice(F&& f);
 }; //class session
 
 

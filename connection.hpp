@@ -24,14 +24,9 @@ public:
 	               std::string host, 
 	               std::string service);
 
-	template<typename F> boost::signals::connection connect_on_resolve(F&& f) 
-	{ return on_resolve.connect(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_connect(F&& f) 
-	{ return on_connect.connect(std::forward<F>(f)); }
-
-	template<typename F> boost::signals::connection connect_on_read_msg(F&& f) 
-	{ return on_read_msg.connect(std::forward<F>(f)); }
+	template<typename F> bsig::connection connect_on_resolve(F&& f);
+	template<typename F> bsig::connection connect_on_connect(F&& f); 
+	template<typename F> bsig::connection connect_on_read_msg(F&& f);
 
 	connection(boost::asio::io_service& io_service,
 	               std::string host, 
@@ -58,8 +53,8 @@ private:
 	void handle_write(  const boost::system::error_code& error,
 	                    std::size_t bytes_transferred);
 
-	const std::string                     delim {"\r\n"};
-	state  state_ { state::resolving };
+	const std::string                     delim  { "\r\n" };
+	state                                 state_ { state::resolving };
 //signals
 	sig_v  on_resolve;
 	sig_v  on_connect;
@@ -73,6 +68,23 @@ private:
 	boost::asio::ip::tcp::resolver        resolver;
 	boost::asio::ip::tcp::resolver::query query;
 }; //class connection
+
+
+template<typename F> 
+bsig::connection connection::connect_on_resolve(F&& f) { 
+	return on_resolve.connect(std::forward<F>(f)); 
+}
+
+template<typename F> 
+bsig::connection connection::connect_on_connect(F&& f) { 
+	return on_connect.connect(std::forward<F>(f)); 
+}
+
+template<typename F>
+bsig::connection connection::connect_on_read_msg(F&& f) { 
+	return on_read_msg.connect(std::forward<F>(f)); 
+}
+
 
 } //namespace irc
 

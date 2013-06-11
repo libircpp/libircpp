@@ -84,15 +84,10 @@ void connection::handle_read(const boost::system::error_code& error,
 	}
 	else {
 		std::istream is { &streambuf };
-		std::vector<std::string> msgs;
-		std::string t;
-		if(std::getline(is, t)) { //deplete the stream
-			msgs.push_back(t);
-		std::ofstream of { "err", std::ofstream::app };
-		for(auto& msg : msgs) {
-			of << msg << "\n\n";
+		std::string msg;
+
+		if(std::getline(is, msg)) { //deplete the stream
 			on_read_msg(msg);
-		}
 		}
 		async_read();
 	}
