@@ -15,7 +15,7 @@
 namespace irc {
 
 class connection : public std::enable_shared_from_this<connection> {
-	enum class state { 
+	enum class states { 
 		resolving, active, stopped
 	};
 public:
@@ -32,6 +32,7 @@ public:
 	               std::string host, 
 	               std::string service);
 
+	void stop();
 	void async_read();
 	void async_write(std::string str);
 private:
@@ -53,8 +54,8 @@ private:
 	void handle_write(  const boost::system::error_code& error,
 	                    std::size_t bytes_transferred);
 
-	const std::string                     delim  { "\r\n" };
-	state                                 state_ { state::resolving };
+	const std::string                     delim { "\r\n" };
+	states                                state { states::resolving };
 //signals
 	sig_v  on_resolve;
 	sig_v  on_connect;

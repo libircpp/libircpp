@@ -297,14 +297,13 @@ void session::async_privmsg(const std::string& target, const std::string& msg) {
 }
 void session::async_change_nick(const std::string& desired_nick) {
 	std::ostringstream oss;
-	//oss << ':' << nick << " NICK " << desired_nick ;//<< "\r\n";
 	oss << "NICK " << desired_nick << "\r\n";
 	connection__->async_write(oss.str());
 }
 
 void session::stop() {
 	if(connection__) {
-	//	connection__->stop();
+		connection__->stop();
 	}
 }
 

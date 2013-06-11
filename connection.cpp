@@ -34,6 +34,14 @@ connection::connection(boost::asio::io_service& io_service,
 ,	query    { std::move(host), std::move(service) }
 {	}
 
+void connection::stop() {
+	state=states::stopped;
+	socket.cancel(); //stops async task
+	//socket.shutdown();
+	//TODO: put close in dtor?
+	socket.close();
+}
+
 void connection::async_resolve() {
 	resolver.async_resolve(
 		query,
@@ -46,6 +54,7 @@ void connection::async_resolve() {
 }
 
 void connection::async_read() {
+	assert(state==states::active);
 	boost::asio::async_read_until(
 		socket,
 		streambuf, 
@@ -78,7 +87,7 @@ void connection::async_write(std::string str) {
 }
 
 void connection::handle_read(const boost::system::error_code& error,
-				 std::size_t bytes_transferred) {
+			                 std::size_t bytes_transferred) {
 	if(error) {
 		//handle error
 	}
@@ -89,7 +98,10 @@ void connection::handle_read(const boost::system::error_code& error,
 		if(std::getline(is, msg)) { //deplete the stream
 			on_read_msg(msg);
 		}
-		async_read();
+
+		if(state==states::active) {
+			async_read();
+		}
 	}
 }
 
@@ -116,7 +128,6 @@ void connection::handle_resolve(const boost::system::error_code& error,
 				ph::_1
 			)
 		);
-
 		on_resolve();
 	}
 	else {
@@ -126,6 +137,7 @@ void connection::handle_resolve(const boost::system::error_code& error,
 
 void connection::handle_connect(const boost::system::error_code& error) {
 	if(!error) {
+		state=states::active;
 		on_connect();
 	}
 	else {
