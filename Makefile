@@ -1,8 +1,8 @@
 export CPP =g++
 export LNK =$(CPP)
 
-#export OPTS         =-O3
-export OPTS         =-O0 -ggdb 
+export OPTS         =-O3 
+#export OPTS         =-O0 -ggdb 
 
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
