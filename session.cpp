@@ -36,6 +36,8 @@ session::session(std::shared_ptr<connection> connection_,
 ,	nick         { std::move(nick_)       } 
 ,	user_name    { std::move(user_name_)  } 
 {	
+	assert(connection__ && "connection is invalid from start");
+
 	parser_.connect_on_privmsg(
 		std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
 
