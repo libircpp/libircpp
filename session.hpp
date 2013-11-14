@@ -92,18 +92,17 @@ public:
 }; //class session
 
 
-
 template<typename F> 
 bsig::connection session::connect_on_motd(F&& f) { 
-	return on_motd.connect(std::move(f)); 
+	return on_motd.connect(std::forward<F>(f)); 
 }
 template<typename F> 
 bsig::connection session::connect_on_join_channel(F&& f) {
-	return on_join_channel.connect(std::move(f));
+	return on_join_channel.connect(std::forward<F>(f));
 }
 template<typename F> 
 bsig::connection session::connect_on_notice(F&& f) {
-	return on_notice.connect(std::move(f));
+	return on_notice.connect(std::forward<F>(f));
 }
 
 } //namespace irc

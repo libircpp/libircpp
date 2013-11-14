@@ -255,10 +255,8 @@ void session::handle_reply(const prefix& pfx, int rp,
 				[&](const std::string& param) { 
 					std::istringstream iss { param };
 					std::for_each(
-						std::istream_iterator<std::string> { iss },
-						std::istream_iterator<std::string> {     },
-						[&](const std::string& nick)
-						{ 
+						std::istream_iterator<std::string> { iss }, { },
+						[&](const std::string& nick) { 
 							auto user=get_or_create_user(nick)->second;
 							assert(user);
 							chan->user_join(user); 
