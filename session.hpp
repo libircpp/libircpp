@@ -3,6 +3,7 @@
 
 #include "parser.hpp"
 #include "types.hpp"
+#include "user.hpp"
 
 #include <memory> //shared_ptr
 #include <string>

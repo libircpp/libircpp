@@ -3,12 +3,28 @@
 
 #include "types.hpp"
 
+#include <boost/iterator/transform_iterator.hpp>
+
 #include <set>
 #include <string>
 
 namespace irc {
 
+inline user& deref(const std::shared_ptr<user>& up) { 
+	assert(up && "invalid shared_ptr");
+	return *up.get(); 
+}
+inline const user& cderef(const std::shared_ptr<user>& up) { 
+	assert(up && "invalid shared_ptr");
+	return *up.get(); 
+}
+
 class channel {
+
+	using user_container      =std::set<shared_user>;
+	using user_iterator       =boost::transform_iterator<decltype(&deref), user_container::iterator>;
+	using const_user_iterator =boost::transform_iterator<decltype(&cderef), user_container::const_iterator>;
+
 	session&              session_;
 	std::string           name;
 	std::string           topic;
@@ -31,8 +47,12 @@ public:
 	//USER INTERFACE
 	const std::string& get_name()  const;
 	const std::string& get_topic() const;
-
 	void async_send_message(const std::string& msg);
+
+	user_iterator       user_begin();
+	user_iterator       user_end();
+	const_user_iterator user_begin() const;
+	const_user_iterator user_end()   const;
 
 	//SYSTEM INTERFACE
 	void message(const shared_user& user, const std::string message);

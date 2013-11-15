@@ -7,7 +7,7 @@ export OPTS         =-O0 -ggdb
 INC          =
 LIB          =-lboost_system -lboost_signals -lpthread
 
-export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -DCONS_FAST_COMPILE 
+export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -DCONS_FAST_COMPILE  -DBOOST_RESULT_OF_USE_DECLTYPE
 #-DNDEBUG  
 #-Wfatal-errors
 #-D_GLIBCXX_DEBUG

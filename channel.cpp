@@ -37,6 +37,18 @@ void channel::async_send_message(const std::string& msg) {
 	session_.async_privmsg(get_name(), msg);
 }
 
+channel::user_iterator channel::user_begin() {
+	return boost::make_transform_iterator(begin(users), deref);
+}
+channel::user_iterator channel::user_end() {
+	return boost::make_transform_iterator(end(users), deref);
+}
+channel::const_user_iterator channel::user_begin() const {
+	return boost::make_transform_iterator(users.cbegin(), cderef);
+}
+channel::const_user_iterator channel::user_end() const {
+	return boost::make_transform_iterator(users.cend(), cderef);
+}
 
 /*
 ** System interface
