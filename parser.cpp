@@ -67,7 +67,7 @@ void parser::parse_message(const std::string& message) {
 		 -prefix_parser[ _a = _1 ] >> 			
 			( ("PRIVMSG" >> +(!lit(':') >> word) >> line)  [ phx::bind(phx::ref(on_privmsg), _a, _1, _2) ]
 			| ("NOTICE"  >> word >> line)                  [ phx::bind(phx::ref(on_notice),  _a, _1, _2) ]
-			| ("MODE"    >> word >> line)                  [ phx::bind(phx::ref(on_mode),    _1, _2)     ]
+			| ("MODE"    >> word >> word)                  [ phx::bind(phx::ref(on_mode),    _1, _2)     ]
 			| ("TOPIC"   >> word >> line)                  [ phx::bind(phx::ref(on_topic),   _1, _2)     ]
 			| ("KICK"    >> word >> word >> -line)         [ phx::bind(phx::ref(on_kick),    _1, _2, _3) ]
 			| ("PING"    >> word >> -word)                 [ phx::bind(phx::ref(on_ping),    _a, _1, _2) ]

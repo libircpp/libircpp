@@ -15,6 +15,9 @@
 
 namespace irc {
 
+bool is_channel(const std::string& s)  { return !s.empty() && s[0]=='#'; }
+bool is_operator(const std::string& s) { return !s.empty() && s[0]=='@'; }
+
 void session::prepare_connection() {
 	assert(connection__);
 
@@ -62,6 +65,8 @@ session::session(std::shared_ptr<connection> connection_,
 	parser_.connect_on_ping(
 		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
 
+	parser_.connect_on_mode(
+		std::bind(&session::handle_mode,    this, ph::_1, ph::_2));
 
 	prepare_connection();
 }
@@ -250,6 +255,9 @@ void session::handle_reply(const prefix& pfx, int rp,
                            const std::vector<std::string>& params) {
 	numeric_replies nr=static_cast<numeric_replies>(rp);
 	switch(nr) {
+	case numeric_replies::ERR_NOSUCHCHANNEL: // 403,
+		on_irc_error("No such channel");	
+	break;
 	case numeric_replies::RPL_MOTD: 
 	{
 		std::ostringstream oss; //TODO optimise for size=1 case?
@@ -288,6 +296,8 @@ void session::handle_reply(const prefix& pfx, int rp,
 			);
 		}
 		break;
+		
+		break;
 	case numeric_replies::RPL_TOPIC:
 		if(params.size() > 2) {
 			auto chan=get_or_create_channel(params[1])->second;
@@ -299,6 +309,24 @@ void session::handle_reply(const prefix& pfx, int rp,
 		break;
 	}
 }
+
+
+void session::handle_mode(const std::string& agent,
+                          const std::string& mode) {
+	if(is_channel(agent)) {
+		assert(false);
+		/*
+		auto it=channels.find(agent);
+		if(it!=end(channels)) {
+			auto& chan=*it->second;
+			//then set chans mode
+		}
+		*/
+	}
+	else { //is user
+		
+	}
+}	
 
 const std::string& session::get_nick() const {
 	return nick;
@@ -315,7 +343,6 @@ user& session::get_self() {
 	assert(it->second); //should be no nullptr shared_ptr in users
 	return *it->second;
 }
-
 
 /*
 ** async interface

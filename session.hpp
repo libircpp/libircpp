@@ -1,9 +1,12 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
+#include "deref.hpp"
 #include "parser.hpp"
 #include "types.hpp"
 #include "user.hpp"
+
+#include <boost/iterator/transform_iterator.hpp>
 
 #include <memory> //shared_ptr
 #include <string>
@@ -12,6 +15,10 @@
 
 namespace irc {
 
+bool is_channel(const std::string& s);
+bool is_operator(const std::string& s);
+
+
 class session {
 //member types 
 	using channel_container                 =std::unordered_map<std::string, shared_channel>;
@@ -19,6 +26,11 @@ class session {
 
 	using user_container                    =std::unordered_map<std::string, shared_user>;
 	using user_iterator                     =user_container::iterator;
+
+	using const_user_iterator               =boost::transform_iterator<
+												decltype(&cderef), 
+												user_container::const_iterator
+											>;
 //member variables
 	parser parser_;
 	std::shared_ptr<connection>           	 connection__;
@@ -30,6 +42,7 @@ class session {
 	sig_ch                                   on_join_channel;
 	sig_s                                    on_notice;
 	sig_usr_s                                on_user_notice;
+	sig_s                                    on_irc_error;
 //helper
 	void prepare_connection();
 	channel_iterator create_new_channel(const std::string& channel_name);
@@ -68,6 +81,9 @@ class session {
 	void handle_reply(  const prefix&                   pfx, 
 	                    int                             rpl, 
 	                    const std::vector<std::string>& params);
+
+	void handle_mode(   const std::string&              agent,	
+	                    const std::string&              mode);
 //deleted functions
 	session(const session&)           =delete;
 	session(session&&)                =delete;
@@ -82,6 +98,9 @@ public:
 
 	user&       get_self();
 	const user& get_self() const;
+
+	//const_user_iterator user_begin() const;
+	//const_user_iterator user_end()   const;
 
 //async interface
 	void async_join(const std::string& channel_name);

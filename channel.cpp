@@ -29,14 +29,9 @@ void channel::add_user(const shared_user& user) {
 session&       channel::get_session()       { return session_; }
 const session& channel::get_session() const { return session_; }
 
-
-const std::string& channel::get_name() const {
-	return name;
-}
-
-const std::string& channel::get_topic() const {
-	return name;
-}
+const std::string& channel::get_name()   const { return name; }
+const std::string& channel::get_topic()  const { return name; }
+bool channel::is_operator(const user& u) const { return operators.count(&u); }
 
 void channel::async_send_message(const std::string& msg) {
 	session_.async_privmsg(get_name(), msg);
@@ -71,8 +66,9 @@ void channel::user_part(const shared_user& user, const optional_string& msg) {
 	assert(user);
 	auto it=users.find(user);
 	if(it!=users.cend()) {
-		users.erase(it);
 		on_user_part(*this, *user, msg);
+		operators.erase(user.get());
+		users.erase(it);
 	} //else was never actually regestered..
 }
 
@@ -90,6 +86,7 @@ void channel::user_quit(const shared_user& user, const std::string& msg) {
 	auto it=users.find(user);	
 	if(it!=users.cend()) {
 		on_user_part(*this, **it, msg);
+		operators.erase(user.get());
 		users.erase(it);
 	}
 }
@@ -97,6 +94,10 @@ void channel::user_quit(const shared_user& user, const std::string& msg) {
 void channel::set_topic(std::string topic_) {
 	topic=std::move(topic_);
 	on_topic_change(*this, topic);
+}
+
+void channel::set_operator(const user& u) {
+	operators.insert(&u);
 }
 
 } //namepsace irc

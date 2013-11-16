@@ -1,6 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include "deref.hpp"
 #include "types.hpp"
 
 #include <boost/iterator/transform_iterator.hpp>
@@ -9,15 +10,6 @@
 #include <string>
 
 namespace irc {
-
-inline user& deref(const std::shared_ptr<user>& up) { 
-	assert(up && "invalid shared_ptr");
-	return *up.get(); 
-}
-inline const user& cderef(const std::shared_ptr<user>& up) { 
-	assert(up && "invalid shared_ptr");
-	return *up.get(); 
-}
 
 class channel {
 
@@ -29,6 +21,9 @@ class channel {
 	std::string           name;
 	std::string           topic;
 	std::set<shared_user> users;
+	std::set<const user*> operators;
+	//WTF doesn't this work?
+	//std::set<std::reference_wrapper<const user>> operators;
 //signals
 	sig_ch        on_channel_part;
 	sig_ch_usr_s  on_message;
@@ -51,6 +46,9 @@ public:
 	//USER INTERFACE
 	const std::string& get_name()  const;
 	const std::string& get_topic() const;
+
+	bool is_operator(const user& u) const;
+
 	void async_send_message(const std::string& msg);
 	void async_part();
 
@@ -65,6 +63,7 @@ public:
 	void user_join(const shared_user& user);
 	void user_quit(const shared_user& user, const std::string& msg);
 	void set_topic(std::string str); 
+	void set_operator(const user& u);
 	void part();
 
 	template<typename F>
