@@ -80,8 +80,12 @@ public:
 
 	const std::string& get_nick() const;
 
+	user&       get_self();
+	const user& get_self() const;
+
 //async interface
 	void async_join(const std::string& channel_name);
+	void async_part(const channel& chan);
 	void async_privmsg(const std::string& target, const std::string& msg);
 	void async_change_nick(const std::string& target);
 

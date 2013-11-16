@@ -16,6 +16,7 @@ class user {
 	sig_usr_s    on_direct_message;
 	sig_usr_s    on_nick_change;
 	sig_usr_s    on_notice;
+
 //deleted functions
 	user(const user&)           =delete;
 	user(user&&)                =delete;
@@ -26,12 +27,13 @@ public:
 	user(std::string nick_, prefix pfx_);
 
 	//USER INTERFACE
-	const std::string& get_nick()   const;
-	const prefix&      get_prefix() const;
+	const std::string& get_nick()    const;
+	const prefix&      get_prefix()  const;
 
 	//SYSTEM INTERFACE 
 	void set_nick(std::string nick_);
 	void set_prefix(prefix pfx_);
+
 	void channel_message(const shared_channel& chan, 
 	                     const std::string& message);
 	void direct_message(const std::string& message);

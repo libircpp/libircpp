@@ -30,6 +30,7 @@ class channel {
 	std::string           topic;
 	std::set<shared_user> users;
 //signals
+	sig_ch        on_channel_part;
 	sig_ch_usr_s  on_message;
 	sig_ch_s      on_topic_change;
 	sig_ch_usr    on_user_join;
@@ -44,10 +45,14 @@ class channel {
 public:
 	channel(session& connection__, std::string name_);
 
+	session&       get_session();
+	const session& get_session() const;
+
 	//USER INTERFACE
 	const std::string& get_name()  const;
 	const std::string& get_topic() const;
 	void async_send_message(const std::string& msg);
+	void async_part();
 
 	user_iterator       user_begin();
 	user_iterator       user_end();
@@ -60,6 +65,7 @@ public:
 	void user_join(const shared_user& user);
 	void user_quit(const shared_user& user, const std::string& msg);
 	void set_topic(std::string str); 
+	void part();
 
 	template<typename F>
 	bsig::connection connect_on_message(F&& f);
@@ -69,6 +75,8 @@ public:
 	bsig::connection connect_on_user_join(F&& f);
 	template<typename F>
 	bsig::connection connect_on_user_part(F&& f);
+	template<typename F>
+	bsig::connection connect_on_channel_part(F&& f);
 }; //class channel
 
 
@@ -84,6 +92,10 @@ bsig::connection channel::connect_on_user_join(F&& f) {
 template<typename F>
 bsig::connection channel::connect_on_user_part(F&& f) {
 	return on_user_part.connect(std::forward<F>(f));	
+}
+template<typename F>
+bsig::connection channel::connect_on_channel_part(F&& f) {
+	return on_channel_part.connect(std::forward<F>(f));	
 }
 template<typename F>
 bsig::connection channel::connect_on_topic_change(F&& f) {

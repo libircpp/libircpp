@@ -106,12 +106,20 @@ session::user_iterator session::create_new_user(const std::string& name,
 }
 
 session::user_iterator session::get_or_create_user(const std::string& user_name) {
-	auto it=users.find(user_name);
+	assert(user_name.size() > 0);
 
-	if(it!=users.cend())
+	bool is_operator=user_name[0]=='@';
+	const auto& mus = is_operator
+	                ? std::string { user_name.begin() + 1, user_name.end() }
+	                : user_name
+	                ;
+
+	auto it=users.find(mus);
+
+	if(it!=users.cend()) 
 		return it;
 	else 
-		return create_new_user(user_name, { user_name });
+		return create_new_user(mus, { mus });
 }
 
 session::user_iterator session::get_or_create_user(const prefix& pfx) {
@@ -133,7 +141,7 @@ void session::handle_privmsg(const prefix& pfx,
                              const std::string& content) {
 	const std::string& target=targets[0];
 	if(pfx.nick) { //nick is an optional
-		auto user=get_or_create_user(pfx)->second; 
+		auto user=get_or_create_user(pfx)->second; //TODO: by ref or move?
 		assert(user);
 		if(target == nick) { //1 to 1
 			user->direct_message(content);
@@ -196,15 +204,29 @@ void session::handle_part(const prefix& pfx,
                           const optional_string& msg) {
 	//TODO have just get
 	auto chan=get_or_create_channel(channel)->second;
+	
 	auto user_it=get_or_create_user(pfx);
-	auto user=user_it->second;
+	auto user_p=user_it->second;
 
 	assert(chan);
-	assert(user);
+	assert(user_p);
 
-	chan->user_part(user, msg);
+	if(user_p->get_nick()==get_self().get_nick()) {
+		//we havea left a channel
+		auto ch_it=channels.find(channel);
+		//TODO: perhaps set warning if channel isn't even in list?
+		if(ch_it!=channels.end()) {
+			ch_it->second->part();			
+		}
+		channels.erase(ch_it);
+	}
+	else {
+		//a user has left a channel
 
-	users.erase(user_it);
+		chan->user_part(user_p, msg);
+
+		users.erase(user_it);
+	}
 }
 
 void session::handle_quit(const prefix& pfx,
@@ -282,9 +304,28 @@ const std::string& session::get_nick() const {
 	return nick;
 }
 
+
+user& session::get_self() {
+	//TODO: if user doesn't exist then make?
+	auto it=users.find(get_nick());
+
+	if(it==end(users)) {
+		assert(false && "not implemented");
+	}
+	assert(it->second); //should be no nullptr shared_ptr in users
+	return *it->second;
+}
+
+
 /*
 ** async interface
 */
+
+void session::async_part(const channel& chan) {
+	std::ostringstream oss;
+	oss << "PART " << chan.get_name() << "\r\n";
+	connection__->async_write(oss.str());
+}
 void session::async_join(const std::string& channel_name) {
 	std::ostringstream oss;
 	oss << "JOIN " << channel_name << "\r\n";
