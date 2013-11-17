@@ -113,8 +113,7 @@ session::user_iterator session::create_new_user(const std::string& name,
 session::user_iterator session::get_or_create_user(const std::string& user_name) {
 	assert(user_name.size() > 0);
 
-	bool is_operator=user_name[0]=='@';
-	const auto& mus = is_operator
+	const auto& mus = is_operator(user_name)
 	                ? std::string { user_name.begin() + 1, user_name.end() }
 	                : user_name
 	                ;
