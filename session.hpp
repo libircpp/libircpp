@@ -42,6 +42,7 @@ class session {
 	sig_ch                                   on_join_channel;
 	sig_s                                    on_notice;
 	sig_usr_s                                on_user_notice;
+	sig_usr                                  on_new_user;
 	sig_s                                    on_irc_error;
 //helper
 	void prepare_connection();
@@ -113,6 +114,7 @@ public:
 	template<typename F> bsig::connection connect_on_motd(F&& f);
 	template<typename F> bsig::connection connect_on_join_channel(F&& f);
 	template<typename F> bsig::connection connect_on_notice(F&& f);
+	template<typename F> bsig::connection connect_on_new_user(F&& f);
 }; //class session
 
 
@@ -127,6 +129,10 @@ bsig::connection session::connect_on_join_channel(F&& f) {
 template<typename F> 
 bsig::connection session::connect_on_notice(F&& f) {
 	return on_notice.connect(std::forward<F>(f));
+}
+template<typename F> 
+bsig::connection session::connect_on_new_user(F&& f) {
+	return on_new_user.connect(std::forward<F>(f));
 }
 
 } //namespace irc

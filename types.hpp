@@ -29,6 +29,7 @@ namespace irc {
 	using sig_p_i_vs     =boost::signal<void(prefix, int, std::vector<std::string>)>;
 	using sig_v          =boost::signal<void(void)>;
 
+	using sig_usr        =boost::signal<void(user&)>;
 	using sig_usr_s      =boost::signal<void(user&, const std::string&)>;
 	using sig_ch         =boost::signal<void(channel&)>;
 	using sig_ch_s       =boost::signal<void(channel&, const std::string&)>;

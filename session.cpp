@@ -104,6 +104,10 @@ session::user_iterator session::create_new_user(const std::string& name,
 	std::tie(it, success)=users.emplace(
 		name, std::make_shared<user>(name, pfx));
 
+	if(name!=get_nick()) { //or maybe user==get_self() ?
+		on_new_user(*it->second);
+	}
+
 	if(!success)
 		throw std::runtime_error("Unable to insert new user: " + name); 
 
