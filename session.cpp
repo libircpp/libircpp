@@ -317,7 +317,7 @@ void session::handle_reply(const prefix& pfx, int rp,
 void session::handle_mode(const std::string& agent,
                           const std::string& mode) {
 	if(is_channel(agent)) {
-		assert(false);
+		//assert(false);
 		/*
 		auto it=channels.find(agent);
 		if(it!=end(channels)) {
