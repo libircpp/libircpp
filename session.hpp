@@ -114,6 +114,7 @@ public:
 	template<typename F> bsig::connection connect_on_motd(F&& f);
 	template<typename F> bsig::connection connect_on_join_channel(F&& f);
 	template<typename F> bsig::connection connect_on_notice(F&& f);
+	template<typename F> bsig::connection connect_on_user_notice(F&& f);
 	template<typename F> bsig::connection connect_on_new_user(F&& f);
 }; //class session
 
@@ -129,6 +130,10 @@ bsig::connection session::connect_on_join_channel(F&& f) {
 template<typename F> 
 bsig::connection session::connect_on_notice(F&& f) {
 	return on_notice.connect(std::forward<F>(f));
+}
+template<typename F> 
+bsig::connection session::connect_on_user_notice(F&& f) {
+	return on_user_notice.connect(std::forward<F>(f));
 }
 template<typename F> 
 bsig::connection session::connect_on_new_user(F&& f) {
