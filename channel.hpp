@@ -30,8 +30,7 @@ class channel {
 	sig_ch_s      on_topic_change;
 	sig_ch_usr    on_user_join;
 	sig_ch_usr_os on_user_part;
-//helpers
-	void add_user(const shared_user& user);
+	sig_v         on_list_users;
 //deleted functions
 	channel(const channel&)           =delete;
 	channel(channel&&)                =delete;
@@ -52,30 +51,35 @@ public:
 	void async_send_message(const std::string& msg);
 	void async_part();
 
+	user_iterator       begin_users();
+	user_iterator       end_users();
+	const_user_iterator begin_users() const;
+	const_user_iterator end_users()   const;
+
+	/*
 	user_iterator       user_begin();
 	user_iterator       user_end();
 	const_user_iterator user_begin() const;
 	const_user_iterator user_end()   const;
+	*/
 
 	//SYSTEM INTERFACE
 	void message(const shared_user& user, const std::string message);
 	void user_part(const shared_user& user, const optional_string& msg);
 	void user_join(const shared_user& user);
+	bool add_user(const shared_user& user);
 	void user_quit(const shared_user& user, const std::string& msg);
 	void set_topic(std::string str); 
 	void set_operator(const user& u);
+	void list_users(); //prompts observers to list users
 	void part();
 
-	template<typename F>
-	bsig::connection connect_on_message(F&& f);
-	template<typename F>
-	bsig::connection connect_on_topic_change(F&& f);
-	template<typename F>
-	bsig::connection connect_on_user_join(F&& f);
-	template<typename F>
-	bsig::connection connect_on_user_part(F&& f);
-	template<typename F>
-	bsig::connection connect_on_channel_part(F&& f);
+	template<typename F> bsig::connection connect_on_message(F&& f);
+	template<typename F> bsig::connection connect_on_topic_change(F&& f);
+	template<typename F> bsig::connection connect_on_user_join(F&& f);
+	template<typename F> bsig::connection connect_on_user_part(F&& f);
+	template<typename F> bsig::connection connect_on_channel_part(F&& f);
+	template<typename F> bsig::connection connect_on_list_users(F&& f);
 }; //class channel
 
 
@@ -100,7 +104,10 @@ template<typename F>
 bsig::connection channel::connect_on_topic_change(F&& f) {
 	return on_topic_change.connect(std::forward<F>(f));	
 }
-
+template<typename F>
+bsig::connection channel::connect_on_list_users(F&& f) {
+	return on_list_users.connect(std::forward<F>(f));
+}
 
 } //namespace irc
 

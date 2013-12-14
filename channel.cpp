@@ -14,13 +14,11 @@ channel::channel(session& session__, std::string name_)
 /*
 ** Internal
 */
-void channel::add_user(const shared_user& user) {
+bool channel::add_user(const shared_user& user) {
 	assert(user);
 	bool success;
 	std::tie(std::ignore, success)=users.insert(user);
-	if(success) { //if the user is new...
-		on_user_join(*this, *user);
-	}
+	return success;
 }
 
 /*
@@ -40,16 +38,16 @@ void channel::async_send_message(const std::string& msg) {
 
 void channel::async_part() { session_.async_part(*this); }
 
-channel::user_iterator channel::user_begin() {
+channel::user_iterator channel::begin_users() {
 	return boost::make_transform_iterator(begin(users), deref{});
 }
-channel::user_iterator channel::user_end() {
+channel::user_iterator channel::end_users() {
 	return boost::make_transform_iterator(end(users), deref{});
 }
-channel::const_user_iterator channel::user_begin() const {
+channel::const_user_iterator channel::begin_users() const {
 	return boost::make_transform_iterator(users.cbegin(), deref{});
 }
-channel::const_user_iterator channel::user_end() const {
+channel::const_user_iterator channel::end_users() const {
 	return boost::make_transform_iterator(users.cend(), deref{});
 }
 
@@ -79,7 +77,10 @@ void channel::part() {
 
 void channel::user_join(const shared_user& user) {
 	assert(user);
-	add_user(user);
+	bool success=add_user(user);
+	if(success) { //if the user is new...
+		on_user_join(*this, *user);
+	}
 }
 
 void channel::user_quit(const shared_user& user, const std::string& msg) {
@@ -98,6 +99,10 @@ void channel::set_topic(std::string topic_) {
 
 void channel::set_operator(const user& u) {
 	operators.insert(&u);
+}
+
+void channel::list_users() {
+	on_list_users();
 }
 
 } //namepsace irc

@@ -292,14 +292,19 @@ void session::handle_reply(const prefix& pfx, int rp,
 						[&](const std::string& nick) { 
 							auto user=get_or_create_user(nick)->second;
 							assert(user);
-							chan->user_join(user); 
+							//note this add user, not user join
+							chan->add_user(user);  
 						}
 					);
 				}
 			);
 		}
 		break;
-		
+	case numeric_replies::RPL_ENDOFNAMES:
+		if(params.size() > 1) { //1st is usr name, 2nd is chan name
+			auto chan=get_or_create_channel(params[1])->second;
+			chan->list_users();
+		}
 		break;
 	case numeric_replies::RPL_TOPIC:
 		if(params.size() > 2) {
@@ -347,6 +352,19 @@ user& session::get_self() {
 	return *it->second;
 }
 
+
+session::const_user_iterator session::begin_users() const {
+	return boost::make_transform_iterator(
+		begin(users),
+		second_deref{}
+	);
+}
+session::const_user_iterator session::end_users() const {
+	return boost::make_transform_iterator(
+		end(users),
+		second_deref{}
+	);
+}
 
 session::const_channel_iterator session::channel_begin() const {
 	return boost::make_transform_iterator(

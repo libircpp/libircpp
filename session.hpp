@@ -104,8 +104,8 @@ public:
 	user&       get_self();
 	const user& get_self() const;
 
-	//const_user_iterator user_begin() const;
-	//const_user_iterator user_end()   const;
+	const_user_iterator begin_users() const;
+	const_user_iterator end_users()   const;
 
 	const_channel_iterator channel_begin() const;
 	const_channel_iterator channel_end()   const;
