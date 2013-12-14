@@ -347,6 +347,21 @@ user& session::get_self() {
 	return *it->second;
 }
 
+
+session::const_channel_iterator session::channel_begin() const {
+	return boost::make_transform_iterator(
+		begin(channels),
+		second_deref{}
+	);
+
+}
+session::const_channel_iterator session::channel_end()   const {
+	return boost::make_transform_iterator(
+		end(channels),
+		second_deref{}
+	);
+}
+
 /*
 ** async interface
 */

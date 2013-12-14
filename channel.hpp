@@ -14,8 +14,8 @@ namespace irc {
 class channel {
 
 	using user_container      =std::set<shared_user>;
-	using user_iterator       =boost::transform_iterator<decltype(&deref), user_container::iterator>;
-	using const_user_iterator =boost::transform_iterator<decltype(&cderef), user_container::const_iterator>;
+	using user_iterator       =boost::transform_iterator<deref, user_container::iterator>;
+	using const_user_iterator =boost::transform_iterator<deref, user_container::const_iterator>;
 
 	session&              session_;
 	std::string           name;

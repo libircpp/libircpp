@@ -28,8 +28,12 @@ class session {
 	using user_iterator                     =user_container::iterator;
 
 	using const_user_iterator               =boost::transform_iterator<
-												decltype(&cderef), 
+												second_deref, 
 												user_container::const_iterator
+											>;
+	using const_channel_iterator            =boost::transform_iterator<
+												second_deref, 
+												channel_container::const_iterator
 											>;
 //member variables
 	parser parser_;
@@ -102,6 +106,9 @@ public:
 
 	//const_user_iterator user_begin() const;
 	//const_user_iterator user_end()   const;
+
+	const_channel_iterator channel_begin() const;
+	const_channel_iterator channel_end()   const;
 
 //async interface
 	void async_join(const std::string& channel_name);

@@ -41,16 +41,16 @@ void channel::async_send_message(const std::string& msg) {
 void channel::async_part() { session_.async_part(*this); }
 
 channel::user_iterator channel::user_begin() {
-	return boost::make_transform_iterator(begin(users), deref);
+	return boost::make_transform_iterator(begin(users), deref{});
 }
 channel::user_iterator channel::user_end() {
-	return boost::make_transform_iterator(end(users), deref);
+	return boost::make_transform_iterator(end(users), deref{});
 }
 channel::const_user_iterator channel::user_begin() const {
-	return boost::make_transform_iterator(users.cbegin(), cderef);
+	return boost::make_transform_iterator(users.cbegin(), deref{});
 }
 channel::const_user_iterator channel::user_end() const {
-	return boost::make_transform_iterator(users.cend(), cderef);
+	return boost::make_transform_iterator(users.cend(), deref{});
 }
 
 /*
