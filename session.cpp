@@ -28,16 +28,20 @@ void session::prepare_connection() {
 	);
 
 	connection__->async_read();
-	connection__->async_write("USER "+user_name+" 0 * :test user\r\n");
+	std::ostringstream oss;
+	oss << "USER " << user_name << " 0 * :" << fullname << "\r\n";
+	connection__->async_write(oss.str());
 	connection__->async_write("NICK "+nick+"\r\n");
 }
 
 session::session(std::shared_ptr<connection> connection_, 
                  std::string nick_, 
-                 std::string user_name_) 
+                 std::string user_name_,
+				 std::string fullname_) 
 :	connection__ { std::move(connection_) }
 ,	nick         { std::move(nick_)       } 
 ,	user_name    { std::move(user_name_)  } 
+,	fullname     { std::move(fullname_)   }
 {	
 	assert(connection__ && "connection is invalid from start");
 

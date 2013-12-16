@@ -40,7 +40,7 @@ class session {
 	std::shared_ptr<connection>           	 connection__;
 	channel_container                        channels;
 	user_container                           users;
-	std::string                              nick, user_name, motd;
+	std::string                              nick, user_name, fullname, motd;
 //callback
 	sig_s                                    on_motd;
 	sig_ch                                   on_join_channel;
@@ -96,7 +96,7 @@ class session {
 	session& operator=(session&&)     =delete;
 public:
 	session(std::shared_ptr<connection> connection_,
-	        std::string nick, std::string user_name_);
+	        std::string nick, std::string user_name_, std::string fullname_);
 
 
 	const std::string& get_nick() const;
