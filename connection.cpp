@@ -2,6 +2,7 @@
 
 #include "util.hpp"
 
+#include <boost/asio/connect.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
 
@@ -131,8 +132,9 @@ void connection::handle_resolve(const boost::system::error_code& error,
 
 
 void connection::try_connect() {
-	socket.async_connect(
-		*endpoints,
+	boost::asio::async_connect(
+		socket,
+		endpoints,
 		std::bind(
 			&connection::handle_connect,
 			shared_from_this(),
