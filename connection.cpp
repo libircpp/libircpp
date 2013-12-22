@@ -130,8 +130,7 @@ void connection::handle_resolve(const boost::system::error_code& error,
 		on_resolve();
 	}
 	else {
-		on_network_error(error.message());
-		//handle error
+		on_network_error("could not resolve: "+error.message());
 	}
 }
 
@@ -141,7 +140,7 @@ void connection::handle_connect(const boost::system::error_code& error) {
 		on_connect();
 	}
 	else {
-		//handle error
+		on_network_error("could not resolve: "+error.message());
 	}
 }
 
