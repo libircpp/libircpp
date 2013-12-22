@@ -120,8 +120,15 @@ void connection::handle_write(const boost::system::error_code& error,
 void connection::handle_resolve(const boost::system::error_code& error,
 					       boost::asio::ip::tcp::resolver::iterator iterator) {
 	if(!error) {
-		endpoints=iterator;
-		try_connect();
+		boost::asio::async_connect(
+			socket,
+			iterator,
+			std::bind(
+				&connection::handle_connect,
+				shared_from_this(),
+				ph::_1
+			)
+		);		
 		on_resolve();
 	}
 	else {
@@ -129,34 +136,13 @@ void connection::handle_resolve(const boost::system::error_code& error,
 	}
 }
 
-
-
-void connection::try_connect() {
-	boost::asio::async_connect(
-		socket,
-		endpoints,
-		std::bind(
-			&connection::handle_connect,
-			shared_from_this(),
-			ph::_1
-		)
-	);
-}
-
-
-
 void connection::handle_connect(const boost::system::error_code& error) {
 	if(!error) {
 		state=states::active;
 		on_connect();
 	}
 	else {
-		++endpoints;
-
-		if(endpoints==boost::asio::ip::tcp::resolver::iterator{}) 
-			on_network_error("could not connect: "+error.message());
-
-		try_connect();
+		on_network_error("could not connect: "+error.message());
 	}
 }
 
