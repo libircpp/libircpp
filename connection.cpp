@@ -130,6 +130,7 @@ void connection::handle_resolve(const boost::system::error_code& error,
 		on_resolve();
 	}
 	else {
+		on_network_error(error.message());
 		//handle error
 	}
 }

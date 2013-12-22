@@ -27,6 +27,7 @@ public:
 	template<typename F> bsig::connection connect_on_resolve(F&& f);
 	template<typename F> bsig::connection connect_on_connect(F&& f); 
 	template<typename F> bsig::connection connect_on_read_msg(F&& f);
+	template<typename F> bsig::connection connect_on_network_error(F&& f);
 
 	connection(boost::asio::io_service& io_service,
 	               std::string host, 
@@ -60,6 +61,7 @@ private:
 	sig_v  on_resolve;
 	sig_v  on_connect;
 	sig_s  on_read_msg;
+	sig_s  on_network_error;
 
 //asio related
 	std::deque<std::string>               write_buffer;
@@ -86,6 +88,10 @@ bsig::connection connection::connect_on_read_msg(F&& f) {
 	return on_read_msg.connect(std::forward<F>(f)); 
 }
 
+template<typename F>
+bsig::connection connection::connect_on_network_error(F&& f) { 
+	return on_network_error.connect(std::forward<F>(f)); 
+}
 
 } //namespace irc
 
