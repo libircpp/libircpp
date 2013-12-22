@@ -46,6 +46,7 @@ private:
 
 	void async_resolve();
 	void async_write_next();
+	void try_connect();
 
 	void handle_resolve(const boost::system::error_code& error,
 	                    boost::asio::ip::tcp::resolver::iterator iterator);
@@ -64,12 +65,13 @@ private:
 	sig_s  on_network_error;
 
 //asio related
-	std::deque<std::string>               write_buffer;
+	std::deque<std::string>                  write_buffer;
 
-	boost::asio::streambuf                streambuf;
-	boost::asio::ip::tcp::socket          socket;
-	boost::asio::ip::tcp::resolver        resolver;
-	boost::asio::ip::tcp::resolver::query query;
+	boost::asio::ip::tcp::resolver::iterator endpoints;
+	boost::asio::streambuf                   streambuf;
+	boost::asio::ip::tcp::socket             socket;
+	boost::asio::ip::tcp::resolver           resolver;
+	boost::asio::ip::tcp::resolver::query    query;
 }; //class connection
 
 
