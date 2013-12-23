@@ -88,10 +88,7 @@ void connection::async_write(std::string str) {
 
 void connection::handle_read(const boost::system::error_code& error,
 			                 std::size_t bytes_transferred) {
-	if(error) {
-		//handle error
-	}
-	else {
+	if(!error) {
 		std::istream is { &streambuf };
 		std::string msg;
 
@@ -103,17 +100,20 @@ void connection::handle_read(const boost::system::error_code& error,
 			async_read();
 		}
 	}
+	else {
+		on_network_error("could not read: "+error.message());
+	}
 }
 
 void connection::handle_write(const boost::system::error_code& error,
                               std::size_t bytes_transferred) {
-	if(error) {
-		//handle error
-	}
-	else {
+	if(!error) {
 		write_buffer.pop_front();
 		if(!write_buffer.empty())
 			async_write_next();
+	}
+	else {
+		on_network_error("could not write: "+error.message());
 	}
 }
 
