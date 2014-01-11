@@ -21,40 +21,40 @@ class parser {
 	sig_p_s     on_nick;
 	sig_p_i_vs  on_reply;
 public:
-	template<typename F> boost::signals::connection connect_on_privmsg(F&& f)
+	template<typename F> bsig::connection connect_on_privmsg(F&& f)
 	{ return on_privmsg.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_notice(F&& f)
+	template<typename F> bsig::connection connect_on_notice(F&& f)
 	{ return on_notice.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_mode(F&& f)
+	template<typename F> bsig::connection connect_on_mode(F&& f)
 	{ return on_mode.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_topic(F&& f)
+	template<typename F> bsig::connection connect_on_topic(F&& f)
 	{ return on_topic.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_kick(F&& f)
+	template<typename F> bsig::connection connect_on_kick(F&& f)
 	{ return on_kick.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_ping(F&& f)
+	template<typename F> bsig::connection connect_on_ping(F&& f)
 	{ return on_ping.connect(std::forward<F>(f)); }
 	
-	template<typename F> boost::signals::connection connect_on_pong(F&& f)
+	template<typename F> bsig::connection connect_on_pong(F&& f)
 	{ return on_pong.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_join(F&& f)
+	template<typename F> bsig::connection connect_on_join(F&& f)
 	{ return on_join.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_part(F&& f)
+	template<typename F> bsig::connection connect_on_part(F&& f)
 	{ return on_part.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_quit(F&& f)
+	template<typename F> bsig::connection connect_on_quit(F&& f)
 	{ return on_quit.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_nick(F&& f)
+	template<typename F> bsig::connection connect_on_nick(F&& f)
 	{ return on_nick.connect(std::forward<F>(f)); }
 
-	template<typename F> boost::signals::connection connect_on_reply(F&& f)
+	template<typename F> bsig::connection connect_on_reply(F&& f)
 	{ return on_reply.connect(std::forward<F>(f)); }
 
 	void parse_message(const std::string& message); 
