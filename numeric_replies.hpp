@@ -1,3 +1,9 @@
+
+//          Copyright Joseph Dobson 2014
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #ifndef NUMERIC_REPLIES_HPP
 #define NUMERIC_REPLIES_HPP
 
@@ -134,7 +140,7 @@ namespace irc {
 		ERR_UMODEUNKNOWNFLAG = 501,
 		ERR_USERSDONTMATCH = 502
 	};
-} //namespace irx
+} //namespace irc
 
 #endif //NUMERIC_REPLIES_HPP
 

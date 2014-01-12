@@ -1,3 +1,9 @@
+
+//          Copyright Joseph Dobson 2014
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
@@ -55,13 +61,6 @@ public:
 	user_iterator       end_users();
 	const_user_iterator begin_users() const;
 	const_user_iterator end_users()   const;
-
-	/*
-	user_iterator       user_begin();
-	user_iterator       user_end();
-	const_user_iterator user_begin() const;
-	const_user_iterator user_end()   const;
-	*/
 
 	//SYSTEM INTERFACE
 	void message(const shared_user& user, const std::string message);
