@@ -4,7 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "../util.hpp"
+#include "../src/util.hpp"
 
 /*
 #ifndef UTIL_HPP
