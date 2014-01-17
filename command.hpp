@@ -7,6 +7,8 @@
 #ifndef IRC_CLIENT_COMMAND_HPP
 #define IRC_CLIENT_COMMAND_HPP
 
+#include <type_traits>
+
 namespace irc {
 
 enum class command;
@@ -228,7 +230,7 @@ enum class command
     RPL_STATSBLINE  = 247, // I
 /*  RPL_STATSGLINE  = 247, // U (REDEFINED see above)
     RPL_STATSXLINE  = 247, // E
-    RPL_STATSDEFINE = 248, // I
+    PL_STATSULINENE = 248, // I
     RPL_STATSULINE  = 248, // EU (REDEFINED see above)
     RPL_STATSDEBUG  = 249, // IEUD */
 /**
