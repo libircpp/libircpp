@@ -22,13 +22,13 @@ user::user(std::string nick_, prefix pfx_)
 /*
 ** User interface
 */
-const std::string& user::get_nick() const {
-	return nick;
-}
+const std::string& user::get_nick() const { return nick; }
 
-const prefix& user::get_prefix() const {
-	return pfx;
-}
+const prefix& user::get_prefix() const { return pfx; }
+
+const mode_block& user::get_modes() const { return modes; }
+mode_block& user::get_modes() { return modes; }
+
 
 /*
 ** System interface

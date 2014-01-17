@@ -18,6 +18,7 @@
 #include <sstream> //ostringstream
 #include <stdexcept> //runtime_error
 #include <iostream>
+#include <fstream>
 
 namespace irc {
 
@@ -33,9 +34,18 @@ void session::prepare_connection() {
 		}
 	);
 
+	std::ofstream dbg { "dbg", std::ofstream::app };
+	dbg << "user name: " << user_name << '\n'
+	    << "nick name: " << nick << '\n'
+		<< "full name: " << fullname;
+
 	connection__->async_read();
 	std::ostringstream oss;
-	oss << "USER " << user_name << " 0 * :" << fullname << "\r\n";
+	oss << "USER " << user_name << " 0 * :";
+
+	if(fullname.empty()) oss << "*\r\n";
+	else                 oss << fullname << "\r\n";
+
 	connection__->async_write(oss.str());
 	connection__->async_write("NICK "+nick+"\r\n");
 }
@@ -332,6 +342,11 @@ void session::handle_reply(const prefix& pfx, int rp,
 void session::handle_mode(const std::string& agent,
                           const std::string& mode) {
 	if(is_channel(agent)) {
+		auto& chan=*get_or_create_channel(agent)->second;
+		auto& modes=chan.get_modes();
+
+		parse_modes(modes, mode);
+
 		//assert(false);
 		/*
 		auto it=channels.find(agent);

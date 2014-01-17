@@ -57,6 +57,10 @@ channel::const_user_iterator channel::end_users() const {
 	return boost::make_transform_iterator(users.cend(), deref{});
 }
 
+
+const mode_block& channel::get_modes() const { return modes; }
+mode_block& channel::get_modes() { return modes; }
+
 /*
 ** System interface
 */

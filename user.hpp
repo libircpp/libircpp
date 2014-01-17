@@ -8,6 +8,7 @@
 #define USER_HPP
 
 #include "types.hpp"
+#include "modes.hpp"
 #include "prefix.hpp"
 
 #include <string>
@@ -23,6 +24,8 @@ class user {
 	sig_usr_s    on_nick_change;
 	sig_usr_s    on_notice;
 
+	mode_block   modes;
+
 //deleted functions
 	user(const user&)           =delete;
 	user(user&&)                =delete;
@@ -35,6 +38,9 @@ public:
 	//USER INTERFACE
 	const std::string& get_nick()    const;
 	const prefix&      get_prefix()  const;
+
+	mode_block&        get_modes();
+	const mode_block & get_modes() const;
 
 	//SYSTEM INTERFACE 
 	void set_nick(std::string nick_);

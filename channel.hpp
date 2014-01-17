@@ -9,10 +9,12 @@
 
 #include "deref.hpp"
 #include "types.hpp"
+#include "modes.hpp"
 
 #include <boost/iterator/transform_iterator.hpp>
 
 #include <set>
+#include <map>
 #include <string>
 
 namespace irc {
@@ -26,8 +28,11 @@ class channel {
 	session&              session_;
 	std::string           name;
 	std::string           topic;
-	std::set<shared_user> users;
+	user_container        users;
 	std::set<const user*> operators;
+
+	mode_block            modes;
+
 	//WTF doesn't this work?
 	//std::set<std::reference_wrapper<const user>> operators;
 //signals
@@ -61,6 +66,9 @@ public:
 	user_iterator       end_users();
 	const_user_iterator begin_users() const;
 	const_user_iterator end_users()   const;
+
+	const mode_block& get_modes() const;
+	mode_block& get_modes();
 
 	//SYSTEM INTERFACE
 	void message(const shared_user& user, const std::string message);
