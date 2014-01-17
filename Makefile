@@ -17,7 +17,7 @@ export LFLAGS=$(OPTS)
 
 #slow objects are library elements and spirit parsers 
 SLOW_OBJS=parse_message.o
-FAST_OBJS=connection.o parser.o session.o channel.o user.o prefix.o command.o
+FAST_OBJS=connection.o parser.o session.o channel.o user.o prefix.o command.o modes.o
 
 OBJS=$(SLOW_OBJS) $(FAST_OBJS) 
 

@@ -9,6 +9,7 @@
 #include "command.hpp"
 
 #include <stdexcept>
+#include <sstream>
 
 //generated using:
 // s/^\s*\(ERR_\w*\).*/\tcase static_cast<raw_command_t>(\1):/p
@@ -18,8 +19,11 @@ namespace irc {
 
 command to_command(raw_command_t value) {
 	switch(value) {
-	default:
-		throw std::runtime_error("value not an enum value");
+	default: {
+		std::ostringstream oss;
+		oss << "Value not an enum value: " << value;
+		throw std::runtime_error(oss.str());
+	}
 	case static_cast<raw_command_t>(command::RPL_WELCOME):
 	case static_cast<raw_command_t>(command::RPL_YOURHOST):
 	case static_cast<raw_command_t>(command::RPL_CREATED):

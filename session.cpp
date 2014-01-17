@@ -343,18 +343,14 @@ void session::handle_mode(const std::string& agent,
                           const std::string& mode) {
 	if(is_channel(agent)) {
 		auto& chan=*get_or_create_channel(agent)->second;
-		auto& modes=chan.get_modes();
 
-		parse_modes(modes, mode);
+		char c;
+		mode_list parsed_modes;
+		std::tie(c, parsed_modes)=parse_modes(mode);
 
-		//assert(false);
-		/*
-		auto it=channels.find(agent);
-		if(it!=end(channels)) {
-			auto& chan=*it->second;
-			//then set chans mode
-		}
-		*/
+		//TODO use enum
+		if(c=='-') chan.remove_modes(parsed_modes); 
+		else       chan.add_modes(parsed_modes);
 	}
 	else { //is user
 		

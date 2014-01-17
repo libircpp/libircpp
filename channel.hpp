@@ -71,6 +71,9 @@ public:
 	mode_block& get_modes();
 
 	//SYSTEM INTERFACE
+	void add_modes(const mode_list& modes);
+	void remove_modes(const mode_list& modes);
+
 	void message(const shared_user& user, const std::string message);
 	void user_part(const shared_user& user, const optional_string& msg);
 	void user_join(const shared_user& user);

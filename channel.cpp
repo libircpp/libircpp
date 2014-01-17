@@ -64,6 +64,15 @@ mode_block& channel::get_modes() { return modes; }
 /*
 ** System interface
 */
+
+
+void channel::add_modes(const mode_list& modes) {
+}
+
+void channel::remove_modes(const mode_list& modes) {
+
+}
+
 void channel::message(const shared_user& user, const std::string message) {
 	assert(user);
 	add_user(user);

@@ -52,10 +52,13 @@ struct message_parser : qi::grammar<Iterator, message(), qi::space_type> {
 	template<typename Val>
 	using rule=qi::rule<Iterator, Val(), qi::space_type>;
 
+	//space sensitive
+	template<typename Val>
+	using rule_ss=qi::rule<Iterator, Val()>;
+
     message_parser() : message_parser::base_type(msg) {
         qi::char_type   char_;
         qi::int_type    int_;
-        qi::lexeme_type lexeme;
         qi::lit_type    lit;
 		qi::attr_type   attr;
 		qi::_1_type     _1;
@@ -86,24 +89,29 @@ struct message_parser : qi::grammar<Iterator, message(), qi::space_type> {
 			("PART",   command::part)   ("PRIVMSG", command::privmsg);
 		
 		pfx %= lit(':') >> 
-			( +~char_(" :@?!")         >> -( '!' >> +~char_(" @") ) >> -( '@' >> +~char_(' ') ) >> lexeme[ ' ' ]
-			| attr(optional_string{}) >> attr(optional_string{})    >>  +~char_(' ')            >> lexeme[ ' ' ]
-			)
-			;
+			 ( +~char_(" :@?!")        >> -( '!' >> +~char_(" @") )  >> -( '@' >> +~char_(' ') )
+			 | attr(optional_string{}) >> attr(optional_string{})    >>  +~char_(' ') 
+			 )
+			 ;
 	
 		cmd     %= verbose_command | int_[ _val=phx::bind(to_command, _1) ]; //sorry
+
 		to_end  %= lit(':') >> *char_;
 		word    %= +~char_(' ');
+
 		params  %= +( to_end | word );
+
         msg     %= -pfx >> cmd >> params;
     }
 private:
 	qi::symbols<char, command> verbose_command;
     rule<command>              cmd;  //command clashes with irc::command
-    rule<prefix>               pfx;
-    rule<std::string>          to_end;
-    rule<std::string>          word;
-    rule<params_type>          params;
+
+    rule_ss<prefix>            pfx; //space sensitive
+    rule_ss<std::string>       to_end;
+    rule_ss<std::string>       word;
+    rule<params_type>       params;
+
     rule<message>              msg;
 };
 
