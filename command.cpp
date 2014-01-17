@@ -4,6 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+// Created:     2014/01/17
+
 #include "command.hpp"
 
 #include <stdexcept>
