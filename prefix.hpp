@@ -9,6 +9,8 @@
 
 #include "types.hpp"
 
+#include <ostream>
+
 namespace irc {
 
 struct prefix { 
@@ -29,6 +31,10 @@ struct prefix {
 };
 
 std::ostream& operator<<(std::ostream& os, const prefix& pfx);
+
+
+std::string to_string(const prefix& pfx);
+
 
 } //namespace irc
 

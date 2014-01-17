@@ -6,6 +6,8 @@
 
 #include "prefix.hpp"
 
+#include <sstream>
+
 namespace irc {
 
 prefix::prefix(optional_string nick_, 
@@ -27,6 +29,12 @@ std::ostream& operator<<(std::ostream& os, const prefix& pfx) {
 	if(pfx.host && ( pfx.nick || pfx.user )) os << "@";
 	if(pfx.host) os << '<' <<  *pfx.host << '>';
 	return os;
+}
+
+std::string to_string(const prefix& pfx) {
+	std::ostringstream oss;
+	oss << pfx;
+	return oss.str();
 }
 
 } //namespace irc

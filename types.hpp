@@ -23,6 +23,8 @@ namespace irc {
 	namespace bsig=boost::signals2;
 
 	using optional_string=boost::optional<std::string>;
+	using optional_prefix=boost::optional<prefix>;
+
 	using sig_p_2s       =bsig::signal<void(prefix, std::string, std::string)>;
 	using sig_s          =bsig::signal<void(std::string)>;
 	using sig_2s         =bsig::signal<void(std::string, std::string)>;
@@ -42,6 +44,9 @@ namespace irc {
 	using sig_ch_usr     =bsig::signal<void(channel&, user&)>;
 	using sig_ch_usr_s   =bsig::signal<void(channel&, user&, const std::string&)>;
 	using sig_ch_usr_os  =bsig::signal<void(channel&, user&, const optional_string&)>;
+
+	using sig_vc         =bsig::signal<void(const std::vector<char>&)>;
+	using sig_vcos       =bsig::signal<void(const std::vector<std::pair<char, optional_string>>&)>;
 
 	using shared_prefix  =std::shared_ptr<prefix>;
 	using shared_channel =std::shared_ptr<channel>;
