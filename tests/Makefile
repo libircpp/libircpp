@@ -3,21 +3,24 @@ export LNK =$(CPP)
 
 export OPTS         ?=-O0 -ggdb 
 
-INC          =-I../.
-LIB          =../irc.o -lboost_system -lpthread 
+INC          =-I ./../include/irc
+LIB          =./../src/irc.o -lboost_system -lpthread 
 
 export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -DCONS_FAST_COMPILE  -DBOOST_RESULT_OF_USE_DECLTYPE
 export LFLAGS=$(OPTS)
 
-PROGRAMS=parser_tests
+PROGRAMS=parser_tests irc_connection_test session_test
 
 all: $(PROGRAMS) 
 
 %.o: %.cpp
 	$(CPP) -c $^ $(CFLAGS) $(INC) -o $@ 
 
+%_test: %_test.o
+	$(CPP) $^ $(LFLAGS) $(LIB) -o $@
+
 %_tests: %_tests.o
 	$(CPP) $^ $(LFLAGS) $(LIB) -o $@
 
 clean:
-	rm -rf *.o parser_tests
+	rm -rf *.o *_tests *_test
