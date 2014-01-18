@@ -21,4 +21,5 @@
 	+ CPP MACROS to INLINE function (stopping multiple symbols)
  * Propper debugging/logging system
  * remove all direct invokations of cout/cerr (this is library)
-
+ * can we use coroutines for some of the more sequential stuff using async APIS
+  	+ We may have to add some call back to the ASYNC apis (we'll see when it arises).	
