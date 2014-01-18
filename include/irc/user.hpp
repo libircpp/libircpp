@@ -15,16 +15,18 @@
 
 namespace irc {
 
+/**
+ * The user class models and IRC user
+ */
 class user {
 	std::string  nick;
 	prefix       pfx;
+	mode_block   modes;
 //signals
 	sig_ch_usr_s on_channel_message;
 	sig_usr_s    on_direct_message;
 	sig_usr_s    on_nick_change;
 	sig_usr_s    on_notice;
-
-	mode_block   modes;
 
 //deleted functions
 	user(const user&)           =delete;
@@ -36,10 +38,25 @@ public:
 	user(std::string nick_, prefix pfx_);
 
 	//USER INTERFACE
+	/**
+	 * \brief returns the nick for this user
+	 * \return the name
+	 */
 	const std::string& get_nick()    const;
+	/**
+	 * \brief returns the prefix for this user
+	 * \return the prefix
+	 */
 	const prefix&      get_prefix()  const;
-
+	/**
+	 * \brief returns the mode block for this user
+	 * \return the mode block
+	 */
 	mode_block&        get_modes();
+	/**
+	 * \brief const version
+	 * \see get_modes
+	 */
 	const mode_block & get_modes() const;
 
 	//SYSTEM INTERFACE 
@@ -51,8 +68,19 @@ public:
 	void direct_message(const std::string& message);
 	void notice(const std::string& notice);
 	
+	/**
+	 * \brief connect to the on_channel_message signal
+	 *
+	 * This signal is triggered when ever the user has sent a channel a 
+	 * private message, the format of the callback is:
+	 *
+	 * \snippet void f(irc::channel&, irc::user&, const std::string&)
+	 *
+	 * \returns the connection object to disconnect from the signal
+	 */
 	template<typename F>
 	bsig::connection connect_on_channel_message(F&& f);
+
 	template<typename F>
 	bsig::connection connect_on_direct_message(F&& f);
 	template<typename F>
