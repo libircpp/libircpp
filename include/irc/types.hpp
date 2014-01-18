@@ -12,6 +12,10 @@
 
 #include <string>
 
+/**
+ * irc is the top level namespace of libircpp, this contains all of the compoents
+ * required to use the library.
+ */
 namespace irc {
 	struct prefix;
 	class connection;

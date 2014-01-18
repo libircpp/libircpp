@@ -39,24 +39,24 @@ public:
 
 	//USER INTERFACE
 	/**
-	 * \brief returns the nick for this user
-	 * \return the name
+	 * @brief returns the nick for this user
+	 * @return the name
 	 */
 	const std::string& get_nick()    const;
 	/**
-	 * \brief returns the prefix for this user
-	 * \return the prefix
+	 * @brief returns the prefix for this user
+	 * @return the prefix
 	 */
 	const prefix&      get_prefix()  const;
 	/**
-	 * \brief returns the mode block for this user
-	 * \return the mode block
+	 * @brief returns the mode block for this user
+	 * @return the mode block
 	 */
 	mode_block&        get_modes();
 	/**
-	 * \brief const version
-	 * \return the mode block
-	 * \see get_modes
+	 * @brief const version
+	 * @return the mode block
+	 * @see get_modes
 	 */
 	const mode_block & get_modes() const;
 
@@ -70,24 +70,57 @@ public:
 	void notice(const std::string& notice);
 	
 	/**
-	 * \brief connect to the on_channel_message signal
+	 * @brief connect to the on_channel_message signal
 	 *
-	 * \param f the function to callback.
+	 * @param f the function to callback.
 	 *
 	 * This signal is triggered when ever the user has sent a channel a 
 	 * private message, the format of the callback is:
 	 *
-	 * \code void f(irc::channel&, irc::user&, const std::string&) \endcode
+	 * @code void f(irc::channel&, irc::user&, const std::string& msg) @endcode
 	 *
-	 * \return the connection object to disconnect from the signal
+	 * @return the connection object to disconnect from the signal
 	 */
 	template<typename F>
 	bsig::connection connect_on_channel_message(F&& f);
-
+	/**
+	 * @brief connect to the on_direct_message signal
+	 *
+	 * @param f the function to callback.
+	 *
+	 * this signal is triggered when ever the user has sent a private message
+	 * directly to you
+	 *
+	 * @code void f(irc::user&, const std::string& msg) \endcode
+	 *
+	 * @return the connection object to disconnect from the signal
+	 */
 	template<typename F>
 	bsig::connection connect_on_direct_message(F&& f);
+	/**
+	 * @brief connect to the on_nick_change signal
+	 *
+	 * @param f the function to callback.
+	 *
+	 * this signal is triggered when ever this users nick has been changed
+	 *
+	 * @code void f(irc::user&, const std::string& new_nick) \endcode
+	 *
+	 * @return the connection object to disconnect from the signal
+	 */	
 	template<typename F>
 	bsig::connection connect_on_nick_change(F&& f);
+	/**
+	 * @brief connect to the on_notice signal
+	 *
+	 * @param f the function to callback.
+	 *
+	 * this signal is triggered when ever this users nick has sent you a notice
+	 *
+	 * @code void f(irc::user&, const std::string& notice) \endcode
+	 *
+	 * @return the connection object to disconnect from the signal
+	 */
 	template<typename F>
 	bsig::connection connect_on_notice(F&& f);
 }; //class user
