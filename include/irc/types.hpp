@@ -49,8 +49,8 @@ namespace irc {
 	using sig_ch_usr_s     =bsig::signal<void(channel&, user&, const std::string&)>;
 	using sig_ch_usr_os    =bsig::signal<void(channel&, user&, const optional_string&)>;
 
-	using sig_vc           =bsig::signal<void(const std::vector<char>&)>;
-	using sig_vcos         =bsig::signal<void(const std::vector<std::pair<char, optional_string>>&)>;
+	using sig_p_vc         =bsig::signal<void(const prefix&, const std::vector<char>&)>;
+	using sig_p_vcos       =bsig::signal<void(const prefix&, const std::vector<std::pair<char, optional_string>>&)>;
 
 	using shared_prefix    =std::shared_ptr<prefix>;
 	using shared_channel   =std::shared_ptr<channel>;

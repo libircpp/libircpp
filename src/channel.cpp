@@ -7,6 +7,8 @@
 #include "channel.hpp"
 #include "session.hpp"
 
+#include "util.hpp"
+
 #include <utility>
 
 namespace irc {
@@ -16,6 +18,13 @@ channel::channel(session& session__, std::string name_)
 ,	name     { std::move(name_) }
 {	}
 
+
+
+bool channel::is_nick_in_channel(const std::string& nick) const {
+	return std::find_if(begin_users(), end_users(),
+		[&](const irc::user& u) { return u.get_nick() == nick; }
+	) == end_users();
+}
 
 /*
 ** Internal
@@ -66,11 +75,22 @@ mode_block& channel::get_modes() { return modes; }
 */
 
 
-void channel::add_modes(const mode_list& modes) {
+void channel::add_modes(const prefix& pfx, mode_list ml) {
+	mode_list user_modes;
+
+	auto p=util::separate(ml.begin(), ml.end(), std::back_inserter(user_modes),
+		[&](const mode_block::value_type& v) {
+			return v.second && is_nick_in_channel(*v.second); }); 
+
+	//remove all user modes
+	ml.erase(p.first, ml.end());
+
+	modes.set_mode(pfx, ml);
+	//TODO handle user modes
 }
 
-void channel::remove_modes(const mode_list& modes) {
-
+void channel::remove_modes(const prefix& pfx, const mode_list& modes) {
+			
 }
 
 void channel::message(const shared_user& user, const std::string message) {

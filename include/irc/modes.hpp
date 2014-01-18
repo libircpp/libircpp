@@ -26,21 +26,28 @@ public:
 
 	bool is_mode_set(char sym) const;
 
-	void set_mode(char sym, const optional_string& param);
-	void set_mode(const std::vector<value_type>& modes);
-	void unset_mode(char sym);
-	void unset_mode(std::vector<char> syms);
+	void set_mode(const prefix& p, char sym, const optional_string& param);
+	void set_mode(const prefix& p, const std::vector<value_type>& modes);
+	void unset_mode(const prefix& p, char sym);
+	void unset_mode(const prefix& p, std::vector<char> syms);
 	optional_string try_get_mode_param(char sym);
+
+	template<typename F> bsig::connection connect_on_set_mode(F&& f);
 private:
 	void set_mode_impl(char sym, const optional_string& param);
 	void unset_mode_impl(char sym);
 
 	using container=std::vector<value_type>;
 
-	sig_vc    on_unset_mode;
-	sig_vcos  on_set_mode;
-	container modes;
+	sig_p_vc    on_unset_mode;
+	sig_p_vcos  on_set_mode;
+	container   modes;
 }; //class modes_block
+
+template<typename F>
+bsig::connection mode_block::connect_on_set_mode(F&& f) {
+	return on_set_mode.connect(std::forward<F>(f));
+}
 
 std::ostream& operator<<(std::ostream& os, const mode_block& mb);
 
@@ -51,6 +58,7 @@ using mode_list=std::vector<mode_block::value_type>;
 using act_mode =std::pair<char, mode_list>;
 
 act_mode parse_modes(const std::string& entries);
+
 
 
 } //namespace irc

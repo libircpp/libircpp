@@ -92,7 +92,8 @@ class session {
 	                    command                         cmd, 
 	                    const std::vector<std::string>& params);
 
-	void handle_mode(   const std::string&              agent,	
+	void handle_mode(   const prefix&                   pfx, 
+	                    const std::string&              agent,	
 	                    const std::string&              mode);
 //deleted functions
 	session(const session&)           =delete;

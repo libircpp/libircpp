@@ -47,6 +47,10 @@ class channel {
 	channel(channel&&)                =delete;
 	channel& operator=(const channel&)=delete;
 	channel& operator=(channel&&)     =delete;
+
+	//helpers
+	bool is_nick_in_channel(const std::string& nick) const;
+
 public:
 	channel(session& connection__, std::string name_);
 
@@ -71,8 +75,8 @@ public:
 	mode_block& get_modes();
 
 	//SYSTEM INTERFACE
-	void add_modes(const mode_list& modes);
-	void remove_modes(const mode_list& modes);
+	void add_modes(const prefix& pfx, mode_list modes);
+	void remove_modes(const prefix& pfx, const mode_list& modes);
 
 	void message(const shared_user& user, const std::string message);
 	void user_part(const shared_user& user, const optional_string& msg);
@@ -90,6 +94,7 @@ public:
 	template<typename F> bsig::connection connect_on_user_part(F&& f);
 	template<typename F> bsig::connection connect_on_channel_part(F&& f);
 	template<typename F> bsig::connection connect_on_list_users(F&& f);
+	template<typename F> bsig::connection connect_on_set_mode(F&& f);
 }; //class channel
 
 
@@ -117,6 +122,15 @@ bsig::connection channel::connect_on_topic_change(F&& f) {
 template<typename F>
 bsig::connection channel::connect_on_list_users(F&& f) {
 	return on_list_users.connect(std::forward<F>(f));
+}
+
+template<typename F>
+bsig::connection channel::connect_on_set_mode(F&& f) {
+	return modes.connect_on_set_mode(
+		[=](const prefix& pfx, const mode_list& ml) {
+			f(*this, pfx, ml);
+		}
+	);
 }
 
 } //namespace irc

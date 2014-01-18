@@ -35,15 +35,15 @@ void mode_block::set_mode_impl(char sym, const optional_string& param) {
 		it->second=param;
 	}
 }
-void mode_block::set_mode(char sym, const optional_string& param) {
+void mode_block::set_mode(const prefix& p, char sym, const optional_string& param) {
 	set_mode_impl(sym, param);
-	on_set_mode({std::make_pair(sym, param)});
+	on_set_mode(p, {std::make_pair(sym, param)});
 }
-void mode_block::set_mode(const std::vector<value_type>& params) {
+void mode_block::set_mode(const prefix& p, const std::vector<value_type>& params) {
 	for(const auto& param : params) {
 		set_mode_impl(param.first, param.second);
 	}
-	on_set_mode(params);
+	on_set_mode(p, params);
 }
 
 
@@ -54,13 +54,13 @@ void mode_block::unset_mode_impl(char sym) {
 		modes.erase(it);			
 	}
 }
-void mode_block::unset_mode(char sym) {
+void mode_block::unset_mode(const prefix& p, char sym) {
 	unset_mode_impl(sym);
-	on_unset_mode({ sym }); 
+	on_unset_mode(p, { sym }); 
 }
-void mode_block::unset_mode(std::vector<char> syms) {
+void mode_block::unset_mode(const prefix& p, std::vector<char> syms) {
 	for(char sym : syms) unset_mode_impl(sym);
-	on_unset_mode(syms); 
+	on_unset_mode(p, syms); 
 }
 
 

@@ -286,7 +286,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 	case command::kick:
 		break;
 	case command::mode: if(requires_n_params(2))
-		handle_mode(params[0], params[1]);
+		handle_mode(pfx, params[0], params[1]);
 		break;
 	case command::nick:
 		//TODO
@@ -378,7 +378,8 @@ void session::handle_reply(const prefix& pfx, command cmd,
 }
 
 
-void session::handle_mode(const std::string& agent,
+void session::handle_mode(const prefix& pfx, 
+                          const std::string& agent,
                           const std::string& mode) {
 	if(is_channel(agent)) {
 		auto& chan=*get_or_create_channel(agent)->second;
@@ -388,8 +389,8 @@ void session::handle_mode(const std::string& agent,
 		std::tie(c, parsed_modes)=parse_modes(mode);
 
 		//TODO use enum
-		if(c=='-') chan.remove_modes(parsed_modes); 
-		else       chan.add_modes(parsed_modes);
+		if(c=='-') chan.remove_modes(pfx, parsed_modes); 
+		else       chan.add_modes(pfx, parsed_modes);
 	}
 	else { //is user
 		
