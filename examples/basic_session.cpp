@@ -7,7 +7,6 @@
 std::unique_ptr<irc::session> sess;
 
 void on_connect(irc::shared_connection conn) {
-	std::cout << "hello world" << std::endl;
 	std::string nick="testnick123",
 	            user="testuser123",
 				fullname="John Smith";
@@ -37,7 +36,6 @@ int main() {
 	std::string host="irc.freenode.net",
 	            port="6667"; 
 
-	std::cout << "connection" << std::endl;
 	//make a shared_ptr to a connection
 	auto connection=irc::connection::make_shared(io_service, host, port);
 	
