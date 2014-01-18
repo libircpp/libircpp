@@ -4,17 +4,21 @@
 #include <types.hpp>
 
 
+std::unique_ptr<irc::session> sess;
+
 void on_connect(irc::shared_connection conn) {
+	std::cout << "hello world" << std::endl;
 	std::string nick="testnick123",
 	            user="testuser123",
 				fullname="John Smith";
 
-	irc::session sess { conn, nick, user, fullname };
+	sess = std::unique_ptr<irc::session>{ 
+	 	new irc::session { conn, nick, user, fullname } };
 
-	sess.connect_on_motd([](const std::string& motd) 
+	sess->connect_on_motd([](const std::string& motd) 
 		{ std::cout << "MOTD:" << motd << std::endl; });
 
-	sess.connect_on_join_channel([](irc::channel& chan) { 
+	sess->connect_on_join_channel([](irc::channel& chan) { 
 			std::cout << "Joined: " << chan.get_name() << std::endl;
 			chan.connect_on_message([](const irc::channel& chan, 
 				const irc::user& user, const std::string str) {
@@ -24,22 +28,27 @@ void on_connect(irc::shared_connection conn) {
 			);
 		}
 	);
-
-	sess.async_join("##news"); //or whatever
+	sess->async_join("##news"); //or whatever
 }
+
 
 int main() {
 	boost::asio::io_service io_service;
 	std::string host="irc.freenode.net",
 	            port="6667"; 
 
+	std::cout << "connection" << std::endl;
 	//make a shared_ptr to a connection
-	auto connection=std::make_shared<irc::connection>(io_service, host, port);
+	auto connection=irc::connection::make_shared(io_service, host, port);
+	
+	connection->connect_on_network_error(
+		[](const std::string& what) { std::cerr << what << std::endl; });
+
+	connection->connect_on_resolve(
+		[]{ std::cout << "resolved" << std::endl; });
 
 	connection->connect_on_connect(std::bind(on_connect, connection));
 
 	io_service.run();
 }
-
-
 
