@@ -7,8 +7,8 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
+#include "command.hpp"
 #include "deref.hpp"
-#include "parser.hpp"
 #include "types.hpp"
 #include "user.hpp"
 
@@ -42,7 +42,6 @@ class session {
 												channel_container::const_iterator
 											>;
 //member variables
-	parser parser_;
 	std::shared_ptr<connection>           	 connection__;
 	channel_container                        channels;
 	user_container                           users;
@@ -65,7 +64,7 @@ class session {
 	user_iterator get_or_create_user(const std::string& nick);
 //handlers
 	void handle_privmsg(const prefix&                   pfx,
-	                    const std::vector<std::string>& target,
+	                    const std::string&              target,
 	                    const std::string&              content);
 
 	void handle_notice (const prefix&                   pfx,
@@ -90,7 +89,7 @@ class session {
 	                    const std::string&              channel);
 
 	void handle_reply(  const prefix&                   pfx, 
-	                    int                             rpl, 
+	                    command                         cmd, 
 	                    const std::vector<std::string>& params);
 
 	void handle_mode(   const std::string&              agent,	

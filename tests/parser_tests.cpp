@@ -197,6 +197,21 @@ int test_main(int, char **) {
 	BOOST_CHECK(msg.params[0] == "Server *.fi already exists; ERROR message to the other server");
 
 
+	std::tie(success, msg)=irc::parse_message(":dobby156!~dobson@cpc17-stkp9-2-0-cust149.10-2.cable.virginm.net PRIVMSG #brownfox :a\r");
+	BOOST_CHECK(success);
+	BOOST_CHECK(msg.prefix); 
+	BOOST_CHECK(msg.prefix->nick); 
+	BOOST_CHECK(*msg.prefix->nick == "dobby156"); 
+	BOOST_CHECK(msg.prefix->user); 
+	BOOST_CHECK(*msg.prefix->user == "~dobson"); 
+	BOOST_CHECK(msg.prefix->host); 
+	BOOST_CHECK(*msg.prefix->host == "cpc17-stkp9-2-0-cust149.10-2.cable.virginm.net"); 
+
+	BOOST_CHECK(msg.command == irc::command::privmsg);
+	BOOST_CHECK(msg.params.size() == 2);
+
+	BOOST_CHECK(msg.params[0] == "#brownfox");
+	BOOST_CHECK(msg.params[1] == "a");
 
 	return 0;
 }

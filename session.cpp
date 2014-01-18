@@ -6,11 +6,12 @@
 
 #include "connection.hpp"
 #include "session.hpp"
+#include "message.hpp"
 #include "channel.hpp"
 #include "prefix.hpp"
 #include "user.hpp"
 
-#include "numeric_replies.hpp"
+//#include "numeric_replies.hpp"
 
 #include "util.hpp"
 
@@ -29,8 +30,20 @@ void session::prepare_connection() {
 	assert(connection__);
 
 	connection__->connect_on_read_msg(
-		[&](const std::string& msg) {
-			parser_.parse_message(msg);
+		[&](const std::string& raw_msg) {
+			try {
+				bool success;
+				message msg;
+				std::tie(success, msg)=parse_message(raw_msg);
+				if(success) {
+					handle_reply(msg.prefix ? *msg.prefix : prefix{}, msg.command, msg.params);
+				}
+			}
+			catch(const std::exception& e) {
+				std::ostringstream oss;
+				oss << "could not parse command: " << e.what();
+				on_irc_error(oss.str());
+			}
 		}
 	);
 
@@ -60,34 +73,6 @@ session::session(std::shared_ptr<connection> connection_,
 ,	fullname     { std::move(fullname_)   }
 {	
 	assert(connection__ && "connection is invalid from start");
-
-	parser_.connect_on_privmsg(
-		std::bind(&session::handle_privmsg, this, ph::_1, ph::_2, ph::_3));
-
-	parser_.connect_on_notice(
-		std::bind(&session::handle_notice,  this, ph::_1, ph::_2, ph::_3));
-
-	parser_.connect_on_reply(
-		std::bind(&session::handle_reply,   this, ph::_1, ph::_2, ph::_3));
-	
-	parser_.connect_on_topic(
-		std::bind(&session::handle_topic,   this, ph::_1, ph::_2));
-
-	parser_.connect_on_join(
-		std::bind(&session::handle_join,    this, ph::_1, ph::_2));
-
-	parser_.connect_on_part(
-		std::bind(&session::handle_part,    this, ph::_1, ph::_2, ph::_3));
-
-	parser_.connect_on_quit(
-		std::bind(&session::handle_quit,    this, ph::_1, ph::_2));
-
-	parser_.connect_on_ping(
-		std::bind(&session::handle_ping,    this, ph::_1, ph::_2, ph::_3));
-
-	parser_.connect_on_mode(
-		std::bind(&session::handle_mode,    this, ph::_1, ph::_2));
-
 	prepare_connection();
 }
 
@@ -165,9 +150,8 @@ session::user_iterator session::get_or_create_user(const prefix& pfx) {
 ** HANDLERS
 */ 
 void session::handle_privmsg(const prefix& pfx,
-                             const std::vector<std::string>& targets,
+                             const std::string& target,
                              const std::string& content) {
-	const std::string& target=targets[0];
 	if(pfx.nick) { //nick is an optional
 		auto user=get_or_create_user(pfx)->second; //TODO: by ref or move?
 		assert(user);
@@ -274,14 +258,69 @@ void session::handle_quit(const prefix& pfx,
 }
 
 // numeric responses from the server
-void session::handle_reply(const prefix& pfx, int rp, 
+void session::handle_reply(const prefix& pfx, command cmd, 
                            const std::vector<std::string>& params) {
-	numeric_replies nr=static_cast<numeric_replies>(rp);
-	switch(nr) {
-	case numeric_replies::ERR_NOSUCHCHANNEL: // 403,
+
+	auto requires_n_params=[&](std::size_t n) {
+		if(params.size() != n) {
+			//TODO on_irc_error(...)
+			return false;
+		}
+		return true;
+	};
+	auto minimum_n_params=[&](std::size_t n) {
+		if(params.size() < n) {
+			//TODO on_irc_error(...)
+			return false;
+		}
+		return true;
+	};
+
+	switch(cmd) {
+	//MAIN actions
+	case command::error:
+		break;
+	case command::join: if(requires_n_params(1))
+		handle_join(pfx, params[0]);
+		break;
+	case command::kick:
+		break;
+	case command::mode: if(requires_n_params(2))
+		handle_mode(params[0], params[1]);
+		break;
+	case command::nick:
+		//TODO
+		break;
+	case command::notice: if(requires_n_params(2))
+		handle_notice(pfx, params[0], params[1]);
+		break;
+	case command::part: if(minimum_n_params(1))
+		handle_part(pfx, params[0], util::try_get(params, 1));
+		break;
+	case command::ping: if(minimum_n_params(1))
+		handle_ping(pfx, params[0], util::try_get(params, 1));
+		break;
+	case command::pong:
+		//TODO do we care?
+		break;
+	case command::privmsg: 
+		if(requires_n_params(2)) {
+			handle_privmsg(pfx, params[0], params[1]);
+		}
+		break;
+	case command::quit: if(requires_n_params(1))
+		handle_quit(pfx, params[0]);
+		break;
+	case command::topic: if(requires_n_params(2))
+		handle_topic(params[0], params[1]);
+		break;
+
+
+
+	case command::ERR_NOSUCHCHANNEL: // 403,
 		on_irc_error("No such channel");	
 	break;
-	case numeric_replies::RPL_MOTD: 
+	case command::RPL_MOTD: 
 	{
 		std::ostringstream oss; //TODO optimise for size=1 case?
 		if(!motd.empty()) oss << '\n';
@@ -292,13 +331,13 @@ void session::handle_reply(const prefix& pfx, int rp,
 		motd+=oss.str();
 		break;
 	}
-	case numeric_replies::RPL_MOTDSTART:
+	case command::RPL_MOTDSTART:
 		motd.clear(); 
 		break;
-	case numeric_replies::RPL_ENDOFMOTD:
+	case command::RPL_ENDOFMOTD:
 		on_motd(motd);
 		break;
-	case numeric_replies::RPL_NAMREPLY:
+	case command::RPL_NAMREPLY:
 		if(params.size() > 3) { //
 
 			auto chan=get_or_create_channel(params[2])->second;
@@ -320,13 +359,13 @@ void session::handle_reply(const prefix& pfx, int rp,
 			);
 		}
 		break;
-	case numeric_replies::RPL_ENDOFNAMES:
+	case command::RPL_ENDOFNAMES:
 		if(params.size() > 1) { //1st is usr name, 2nd is chan name
 			auto chan=get_or_create_channel(params[1])->second;
 			chan->list_users();
 		}
 		break;
-	case numeric_replies::RPL_TOPIC:
+	case command::RPL_TOPIC:
 		if(params.size() > 2) {
 			auto chan=get_or_create_channel(params[1])->second;
 			chan->set_topic(params[2]);

@@ -7,7 +7,6 @@
 #ifndef IRC_CONNECTION_HPP
 #define IRC_CONNECTION_HPP
 
-#include "parser.hpp"
 #include "types.hpp"
 
 #include <boost/asio/io_service.hpp>

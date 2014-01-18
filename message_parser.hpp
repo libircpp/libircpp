@@ -29,16 +29,16 @@
 using params_type = decltype(irc::message::params);
  
 BOOST_FUSION_ADAPT_STRUCT(
-    irc::message,
-    (irc::optional_prefix, prefix)
-    (irc::command,        command)
-    (params_type,          params)
+	irc::message,
+	(irc::optional_prefix, prefix)
+	(irc::command,        command)
+	(params_type,          params)
 )
 BOOST_FUSION_ADAPT_STRUCT(
-    irc::prefix,
-    (irc::optional_string, nick)
-    (irc::optional_string, user)
-    (irc::optional_string, host)
+	irc::prefix,
+	(irc::optional_string, nick)
+	(irc::optional_string, user)
+	(irc::optional_string, host)
 )
  
 namespace irc {
@@ -49,21 +49,21 @@ namespace phx=boost::phoenix;
 template <typename Iterator>
 struct message_parser : qi::grammar<Iterator, message(), qi::space_type> {
 
-	template<typename Val>
-	using rule=qi::rule<Iterator, Val(), qi::space_type>;
+    template<typename Val>
+    using rule=qi::rule<Iterator, Val(), qi::space_type>;
 
-	//space sensitive
-	template<typename Val>
-	using rule_ss=qi::rule<Iterator, Val()>;
+    //space sensitive
+    template<typename Val>
+    using rule_ss=qi::rule<Iterator, Val()>;
 
-    message_parser() : message_parser::base_type(msg) {
-        qi::char_type   char_;
-        qi::int_type    int_;
-        qi::lit_type    lit;
+	message_parser() : message_parser::base_type(msg) {
+		qi::char_type   char_;
+		qi::int_type    int_;
+		qi::lit_type    lit;
 		qi::attr_type   attr;
 		qi::_1_type     _1;
 		qi::_val_type   _val;
-/*
+	/*
     The presence of a prefix is indicated with a single leading ASCII
     colon character (':', 0x3b), which MUST be the first character of the
     message itself.
@@ -96,22 +96,20 @@ struct message_parser : qi::grammar<Iterator, message(), qi::space_type> {
 	
 		cmd     %= verbose_command | int_[ _val=phx::bind(to_command, _1) ]; //sorry
 
-		to_end  %= lit(':') >> *char_;
-		word    %= +~char_(' ');
+		to_end  %= lit(':') >> *~char_("\r");
+		word    %= +~char_(" \r");
 
 		params  %= +( to_end | word );
 
-        msg     %= -pfx >> cmd >> params;
+		msg     %= -pfx >> cmd >> params;
     }
 private:
-	qi::symbols<char, command> verbose_command;
+    qi::symbols<char, command> verbose_command;
     rule<command>              cmd;  //command clashes with irc::command
-
     rule_ss<prefix>            pfx; //space sensitive
     rule_ss<std::string>       to_end;
     rule_ss<std::string>       word;
-    rule<params_type>       params;
-
+    rule<params_type>          params;
     rule<message>              msg;
 };
 
