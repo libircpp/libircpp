@@ -55,6 +55,7 @@ public:
 	mode_block&        get_modes();
 	/**
 	 * \brief const version
+	 * \return the mode block
 	 * \see get_modes
 	 */
 	const mode_block & get_modes() const;
@@ -71,12 +72,14 @@ public:
 	/**
 	 * \brief connect to the on_channel_message signal
 	 *
+	 * \param f the function to callback.
+	 *
 	 * This signal is triggered when ever the user has sent a channel a 
 	 * private message, the format of the callback is:
 	 *
-	 * \snippet void f(irc::channel&, irc::user&, const std::string&)
+	 * \code void f(irc::channel&, irc::user&, const std::string&) \endcode
 	 *
-	 * \returns the connection object to disconnect from the signal
+	 * \return the connection object to disconnect from the signal
 	 */
 	template<typename F>
 	bsig::connection connect_on_channel_message(F&& f);
