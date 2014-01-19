@@ -285,8 +285,12 @@ void session::handle_reply(const prefix& pfx, command cmd,
 		break;
 	case command::kick:
 		break;
-	case command::mode: if(requires_n_params(2))
-		handle_mode(pfx, params[0], params[1]);
+	case command::mode: 
+		if(minimum_n_params(2)) {
+			std::string modes=params[1];
+			if(params.size() == 3) modes+=" " + params[2];
+			handle_mode(pfx, params[0], modes);
+		}
 		break;
 	case command::nick:
 		//TODO
@@ -319,7 +323,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 
 	case command::ERR_NOSUCHCHANNEL: // 403,
 		on_irc_error("No such channel");	
-	break;
+		break;
 	case command::RPL_MOTD: 
 	{
 		std::ostringstream oss; //TODO optimise for size=1 case?

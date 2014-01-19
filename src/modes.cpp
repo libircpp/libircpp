@@ -78,7 +78,7 @@ optional_string mode_block::try_get_mode_param(char sym) {
 }
 
 std::ostream& operator<<(std::ostream& os, const mode_block& mb) {
-	for(auto mode : mb) {
+	for(const auto& mode : mb) {
 		os << mode.first;
 		if(mode.second) os << '(' << *mode.second << ')';
 	}
@@ -91,17 +91,24 @@ std::string to_string(const mode_block& mb) {
 	return oss.str();
 }
 
+std::string to_string(const mode_list& ml) {
+	std::ostringstream oss;
+	for(const auto& m : ml) {
+		oss << m.first;
+		if(m.second) oss << '(' << *m.second << ')';
+	}
+	return oss.str();
+}
 
-
-namespace qi =boost::spirit::qi;
+namespace qi=boost::spirit::qi;
 
 template<typename T>
-using rule     =qi::rule<std::string::const_iterator, T(), qi::space_type>;
+using rule=qi::rule<std::string::const_iterator, T(), qi::space_type>;
 
 act_mode parse_modes(const std::string& entries) {
 
-	rule<mode_block::value_type> mode =
-		qi::alpha >> -( qi::lexeme[' '] >> +qi::char_ );
+	qi::rule<std::string::const_iterator, mode_block::value_type()> mode=
+		qi::lexeme[ ~qi::char_(' ')  >> -( ' ' >> +qi::char_ )];
 
 	rule<act_mode> modes=qi::char_("+-") >> +mode;
 

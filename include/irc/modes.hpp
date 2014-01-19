@@ -51,15 +51,15 @@ bsig::connection mode_block::connect_on_set_mode(F&& f) {
 
 std::ostream& operator<<(std::ostream& os, const mode_block& mb);
 
-std::string to_string(const mode_block& mb);
 
 
 using mode_list=std::vector<mode_block::value_type>;
 using act_mode =std::pair<char, mode_list>;
 
+std::string to_string(const mode_block& mb);
+std::string to_string(const mode_list& ml);
+
 act_mode parse_modes(const std::string& entries);
-
-
 
 } //namespace irc
 
