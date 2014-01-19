@@ -34,7 +34,16 @@ class user {
 	user& operator=(const user&)=delete;
 	user& operator=(user&&)     =delete;
 public:
+	/**
+	 * Constructor.
+	 * @param nick_ The user nickname.
+	 */
 	user(std::string nick_);
+	/**
+	 * Constructor.
+	 * @param nick_ The user nickname.
+	 * @param pfx_  The user hostmask.
+	 */
 	user(std::string nick_, prefix pfx_);
 
 	//USER INTERFACE

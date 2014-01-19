@@ -14,11 +14,24 @@
 #include "command.hpp"
 
 namespace irc {
-
+/**
+    IRC message struct.
+    Servers and clients send each other messages,
+    which may or may not generate a reply.
+*/
 struct message {
-	//messages maynot have prefixs
+/**
+    Message prefix (optional).
+*/
 	optional_prefix          prefix;
+/**
+    Message command.
+*/
 	irc::command             command;
+/**
+    Message command parameters.
+    RFC set this to a maximum of 15.
+*/
 	std::vector<std::string> params; 
 }; //struct message
 

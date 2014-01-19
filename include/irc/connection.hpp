@@ -18,28 +18,86 @@
 #include <deque>
 
 namespace irc {
-
+/**
+ * IRC connection class.
+ */
 class connection : public std::enable_shared_from_this<connection> {
 	enum class states { 
 		resolving, active, stopped
 	};
 public:
+	/**
+	 * Static constructor.
+	 * @param io_service A reference to the ASIO io_service.
+	 * @param host       An hostname to connect to.
+	 * @param service    The connection port as string.
+	 * @return A shared_ptr to the created connection.
+	 */
 	static std::shared_ptr<connection> make_shared(
 	               boost::asio::io_service& io_service,
 	               std::string host, 
 	               std::string service);
-
+	/**
+	 * Connect to the on_resolve signal.
+	 * This signal is triggered when IRC server names was resolved.
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f()
+	 * @endcode
+	 * @return The connection object to disconnect from the signal.
+	 */
 	template<typename F> bsig::connection connect_on_resolve(F&& f);
+	/**
+	 * Connect to the on_connect signal.
+	 * This signal is triggered when connected to an IRC server.
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f()
+	 * @endcode
+	 * @return The connection object to disconnect from the signal.
+	 */
 	template<typename F> bsig::connection connect_on_connect(F&& f); 
+	/**
+	 * Connect to the on_read_msg signal.
+	 * This signal is triggered when an IRC server message was read.
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(const std::string& msg)
+	 * @endcode
+	 * @return The connection object to disconnect from the signal.
+	 */
 	template<typename F> bsig::connection connect_on_read_msg(F&& f);
+	/**
+	 * Connect to the on_network_error signal.
+	 * This signal is triggered when there was a connection error.
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(const std::string& error_msg)
+	 * @endcode
+	 * @return The connection object to disconnect from the signal.
+	 */
 	template<typename F> bsig::connection connect_on_network_error(F&& f);
-
+	/**
+	 * Constructor.
+	 * @param io_service A reference to the ASIO io_service.
+	 * @param host       An hostname to connect to.
+	 * @param service    The connection port as string.
+	 */
 	connection(boost::asio::io_service& io_service,
 	               std::string host, 
 	               std::string service);
-
+	/**
+	 * Disconnects from IRC server.
+	 */
 	void stop();
+	/**
+	 * Requests an asynchronous buffer read from the socket.
+	 */
 	void async_read();
+	/**
+	 * Requests an asynchronous buffer write to the socket.
+	 * @param str Data to push back to the write buffer.
+	 */
 	void async_write(std::string str);
 private:
 	//the move constructors could be achieved using the PIMPL idiom

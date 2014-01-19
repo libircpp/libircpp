@@ -27,6 +27,8 @@ command to_command(raw_command_t value);
 /** 
     Reply codes and errors.
     RFC 2812: Error replies are found in the range from 400 to 599.
+
+    @todo list, names, invite, channel mode command documentation.
 */
 enum class command
 {
@@ -1025,18 +1027,396 @@ enum class command
     ERR_WHOSYNTAX,     = 522, // D
     ERR_WHOLIMEXCEED   = 523, // D
     ERR_NUMERIC_ERR    = 999  // D */
+/**
+    Parameters: <error message\>
 
+    The ERROR command is for use by servers when reporting a serious or
+    fatal error to its peers.  It may also be sent from one server to
+    another but MUST NOT be accepted from any normal unknown clients.
+
+    Only an ERROR message SHOULD be used for reporting errors which occur
+    with a server-to-server link.  An ERROR message is sent to the server
+    at the other end (which reports it to appropriate local users and
+    logs) and to appropriate local users and logs.  It is not to be
+    passed onto any other servers by a server if it is received from a server.
+
+    The ERROR message is also used before terminating a client connection.
+
+    When a server sends a received ERROR message to its operators, the
+    message SHOULD be encapsulated inside a NOTICE message, indicating
+    that the client was not responsible for the error.
+
+    Numerics:
+    - None.
+
+    Examples:
+
+    ERROR :Server *.fi already exists\n
+    ; ERROR message to the other server which caused this error.
+
+    NOTICE WiZ :ERROR from csd.bu.edu -- Server *.fi already exists\n
+    ; Same ERROR message as above but sent to user WiZ on the other server.
+*/
     error = rpl_max + 1,
+/**
+    Parameters: ( <channel\> *( "," <channel\> ) [ <key\> *( "," <key\> ) ] ) / "0"
+
+    The JOIN command
+    is used by a user to request to start listening to the specific channel.
+    Servers MUST be able to parse arguments in the form of a list of target,
+    but SHOULD NOT use lists when sending JOIN messages to clients.
+
+    Once a user has joined a channel, he receives information about
+    all commands his server receives affecting the channel.
+    This includes command::join, command::mode, command::kick,
+    command::part, command::quit and of course command::privmsg / command::notice.
+    This allows channel members to keep track of the other channel members,
+    as well as channel modes.
+
+    If a JOIN is successful, the user receives a JOIN message as
+    confirmation and is then sent the channel's topic (using RPL_TOPIC) and
+    the list of users who are on the channel (using RPL_NAMREPLY),
+    which MUST include the user joining.
+
+    Note that this message accepts a special argument ("0"), which is
+    a special request to leave all channels the user is currently a member of.
+    The server will process this message as if the user had sent
+    a command::part command
+    (See <a href="https://tools.ietf.org/html/rfc2812#section-3.2.2" target="blank_">
+    Section 3.2.2</a>)
+    for each channel he is a member of.
+
+    Numeric Replies:
+    - command::ERR_NEEDMOREPARAMS
+    - command::ERR_BANNEDFROMCHAN
+    - command::ERR_INVITEONLYCHAN
+    - command::ERR_BADCHANNELKEY
+    - command::ERR_CHANNELISFULL
+    - command::ERR_BADCHANMASK
+    - command::ERR_NOSUCHCHANNEL
+    - command::ERR_TOOMANYCHANNELS
+    - command::ERR_TOOMANYTARGETS
+    - command::ERR_UNAVAILRESOURCE
+    - command::RPL_TOPIC
+
+    Examples:
+
+    JOIN \#foobar\n; Command to join channel \#foobar.
+
+    JOIN &foo fubar\n ; Command to join channel &foo using key "fubar".
+*/
     join,
+/**
+    Parameters: <channel\> *( "," <channel\> ) <user\> *( "," <user\> ) [<comment\>]
+
+    The KICK command can be used to request the forced removal of a user from a channel.
+    It causes the <user\> to PART from the <channel\> by force.
+    For the message to be syntactically correct, there MUST be either
+    one channel parameter and multiple user parameter, or as many
+    channel parameters as there are user parameters.
+    If a "comment" is given, this will be sent instead of the default message,
+    the nickname of the user issuing the KICK.
+
+    The server MUST NOT send KICK messages with multiple channels or users to clients.
+    This is necessarily to maintain backward compatibility with old client software.
+
+    Numeric Replies:
+    - command::ERR_NEEDMOREPARAMS
+    - command::ERR_NOSUCHCHANNEL
+    - command::ERR_BADCHANMASK
+    - command::ERR_CHANOPRIVSNEEDED
+    - command::ERR_USERNOTINCHANNEL
+    - command::ERR_NOTONCHANNEL
+
+    Examples:
+
+    KICK &Melbourne Matthew\n; Command to kick Matthew from &Melbourne
+
+    KICK \#Finnish John :Speaking English\n; Command to kick John from \#Finnish
+    using "Speaking English" as the reason (comment).
+
+    :WiZ!jto\@tolsun.oulu.fi KICK \#Finnish John\n
+    ; KICK message on channel \#Finnish from WiZ to remove John from channel.
+*/
     kick,
+/**
+    Parameters: <nickname\> *( ( "+" / "-" ) *( "i" / "w" / "o" / "O" / "r" ) )
+
+    The user MODE's are typically changes which affect either how the
+    client is seen by others or what 'extra' messages the client is sent.
+
+    A user MODE command MUST only be accepted if both the sender of the
+    message and the nickname given as a parameter are both the same.  If
+    no other parameter is given, then the server will return the current
+    settings for the nick.
+
+    The available modes are as follows:
+    - a - user is flagged as away;
+    - i - marks a users as invisible;
+    - w - user receives wallops;
+    - r - restricted user connection;
+    - o - operator flag;
+    - O - local operator flag;
+    - s - marks a user for receipt of server notices.
+
+    Additional modes may be available later on.
+
+    The flag 'a' SHALL NOT be toggled by the user using the MODE command,
+    instead use of the AWAY command is REQUIRED.
+
+    If a user attempts to make themselves an operator using the "+o" or
+    "+O" flag, the attempt SHOULD be ignored as users could bypass the
+    authentication mechanisms of the OPER command.  There is no
+    restriction, however, on anyone `deopping' themselves (using "-o" or
+    "-O").
+
+    On the other hand, if a user attempts to make themselves unrestricted
+    using the "-r" flag, the attempt SHOULD be ignored.  There is no
+    restriction, however, on anyone `deopping' themselves (using "+r").
+    This flag is typically set by the server upon connection for
+    administrative reasons.  While the restrictions imposed are left up
+    to the implementation, it is typical that a restricted user not be
+    allowed to change nicknames, nor make use of the channel operator
+    status on channels.
+
+    The flag 's' is obsolete but MAY still be used.
+
+    Numeric Replies:
+    - command::ERR_NEEDMOREPARAMS
+    - command::ERR_USERSDONTMATCH
+    - command::ERR_UMODEUNKNOWNFLAG
+    - command::RPL_UMODEIS
+
+    Examples:
+
+    MODE WiZ -w\n; Command by WiZ to turn off reception of WALLOPS messages.
+
+    MODE Angel +i\n; Command from Angel to make herself invisible.
+
+    MODE WiZ -o\n; WiZ 'deopping' (removing operator status).
+*/
     mode,
+/**
+    Parameters: <nickname\>
+
+    NICK command is used to give user a nickname or change the existing one.
+
+    Numeric Replies:
+    - command::ERR_NONICKNAMEGIVEN
+    - command::ERR_ERRONEUSNICKNAME
+    - command::ERR_NICKNAMEINUSE
+    - command::ERR_NICKCOLLISION
+    - command::ERR_UNAVAILRESOURCE
+    - command::ERR_RESTRICTED
+
+    Examples:
+
+    NICK Wiz\n; Introducing new nick "Wiz" if session is still unregistered,
+                or user changing his nickname to "Wiz"
+
+   :WiZ!jto\@tolsun.oulu.fi NICK Kilroy\n; Server telling that WiZ changed his
+                                            nickname to Kilroy.
+*/
     nick,
+/**
+    Parameters: <msgtarget\> <text\>
+
+    The NOTICE command is used similarly to PRIVMSG.
+    The difference between NOTICE and PRIVMSG is that automatic replies
+    MUST NEVER be sent in response to a NOTICE message.
+    This rule applies to servers too
+
+    - they MUST NOT send any error reply back to the client on receipt of a notice.
+    The object of this rule is to avoid loops between clients
+    automatically sending something in response to something it received.
+
+    This command is available to services as well as users.
+
+    This is typically used by services, and automatons (clients with
+    either an AI or other interactive program controlling their actions).
+
+    @see command::privmsg for more details on replies and examples.
+*/
     notice,
+/**
+    Parameters: <channel\> *( "," <channel\> ) [ <Part Message\> ]
+
+    The PART command causes the user sending the message to be removed
+    from the list of active members for all given channels listed in the
+    parameter string.
+    If a "Part Message" is given,
+    this will be sent instead of the default message, the nickname.
+    This request is always granted by the server.
+
+    Servers MUST be able to parse arguments in the form of a list of target,
+    but SHOULD NOT use lists when sending PART messages to clients.
+
+    Numeric Replies:
+    - command::ERR_NEEDMOREPARAMS
+    - command::ERR_NOSUCHCHANNEL
+    - command::ERR_NOTONCHANNEL
+
+    Examples:
+
+    PART \#twilight_zone\n; Command to leave channel "#twilight_zone"
+
+    PART \#oz-ops,&group5\n; Command to leave both channels "&group5" and "#oz-ops".
+
+    :WiZ!jto\@tolsun.oulu.fi PART \#playzone :I lost\n
+    ; User WiZ leaving channel "#playzone" with the message "I lost".
+*/
     part,
+/**
+    Parameters: <server1\> [ <server2\> ]
+
+    The PING command is used to test the presence of an active client or
+    server at the other end of the connection.
+    Servers send a PING message at regular intervals if
+    no other activity detected coming from a connection.
+    If a connection fails to respond to a PING message
+    within a set amount of time, that connection is closed.
+    A PING message MAY be sent even if the connection is active.
+
+    When a PING message is received, the appropriate PONG message MUST be sent as
+    reply to <server1\> (server which sent the PING message out) as soon as possible.
+    If the <server2\> parameter is specified, it represents the target of the ping,
+    and the message gets forwarded there.
+
+    Numeric Replies:
+    - command::ERR_NOORIGIN
+    - command::ERR_NOSUCHSERVER
+
+    Examples:
+
+    PING tolsun.oulu.fi\n; Command to send a PING message to server
+
+    PING WiZ tolsun.oulu.fi\n; Command from WiZ to send a PING message to server "tolsun.oulu.fi"
+
+    PING :irc.funet.fi\n; Ping message sent by server "irc.funet.fi"
+*/
     ping,
+/**
+    Parameters: <server\> [ <server2\> ]
+
+    PONG message is a reply to ping message.
+    If parameter <server2\> is given, this message MUST be forwarded to given target.
+    The <server\> parameter is the name of the entity who has responded to
+    PING message and generated this message.
+
+    Numeric Replies:
+    - command::ERR_NOORIGIN
+    - command::ERR_NOSUCHSERVER
+
+    Example:
+
+    PONG csd.bu.edu tolsun.oulu.fi\n; PONG message from csd.bu.edu to tolsun.oulu.fi
+*/
     pong,
+/**
+    Parameters: <msgtarget\> <text to be sent\>
+
+    PRIVMSG is used to send private messages between users,
+    as well as to send messages to channels.
+    <msgtarget\> is usually the nickname of the recipient of the message,
+    or a channel name.
+
+    The <msgtarget\> parameter may also be a host mask (#<mask\>)
+    or server mask ($<mask\>).
+    In both cases the server will only send the PRIVMSG
+    to those who have a server or host matching the mask.
+    The mask MUST have at least 1 (one) "." in it
+    and no wildcards following the last ".".
+    This requirement exists to prevent people sending messages to
+    "#*" or "$*", which would broadcast to all users.
+    Wildcards are the '*' and '?' characters.
+    This extension to the PRIVMSG command is only available to operators.
+
+    Numeric Replies:
+    - command::ERR_NORECIPIENT
+    - command::ERR_NOTEXTTOSEND
+    - command::ERR_CANNOTSENDTOCHAN
+    - command::ERR_NOTOPLEVEL
+    - command::ERR_WILDTOPLEVEL
+    - command::ERR_TOOMANYTARGETS
+    - command::ERR_NOSUCHNICK
+    - command::RPL_AWAY
+
+   Examples:
+
+    :Angel!wings\@irc.org PRIVMSG Wiz :Are you receiving this message ?\n
+    ; Message from Angel to Wiz.
+
+    PRIVMSG Angel :yes I'm receiving it !\n
+    ; Command to send a message to Angel.
+
+    PRIVMSG jto\@tolsun.oulu.fi :Hello !\n
+    ; Command to send a message to a user
+    on server tolsun.oulu.fi with username of "jto".
+
+    PRIVMSG kalt%millennium.stealth.net\@irc.stealth.net :Are you a frog?\n
+    ; Message to a user on server irc.stealth.net with username of
+    "kalt", and connected from the host millennium.stealth.net.
+
+    PRIVMSG kalt%millennium.stealth.net :Do you like cheese?\n
+    ; Message to a user on the local server with username of "kalt",
+    and connected from the host millennium.stealth.net.
+
+    PRIVMSG Wiz!jto\@tolsun.oulu.fi :Hello !\n
+    ; Message to the user with nickname Wiz who is connected from the host
+    tolsun.oulu.fi and has the username "jto".
+
+    PRIVMSG $*.fi :Server tolsun.oulu.fi rebooting.\n
+    ; Message to everyone on a server which has a name matching *.fi.
+
+    PRIVMSG #*.edu :NSFNet is undergoing work, expect interruptions\n
+    ; Message to all users who come from a host which has a name matching *.edu.
+*/
     privmsg,
+/**
+    Parameters: [ <Quit Message\> ]
+
+    A client session is terminated with a quit message.
+    The server acknowledges this by sending an ERROR message to the client.
+
+    Numeric Replies:
+    - None.
+
+    Example:
+
+    QUIT :Gone to have lunch\n; Preferred message format.
+
+    :syrk!kalt\@millennium.stealth.net QUIT :Gone to have lunch\n
+    ; User syrk has quit IRC to have lunch.
+*/
     quit,
+/**
+    Parameters: <channel\> [ <topic\> ]
+
+    The TOPIC command is used to change or view the topic of a channel.
+    The topic for channel <channel\> is returned if there is no <topic\> given.
+    If the <topic\> parameter is present, the topic for that channel will be changed,
+    if this action is allowed for the user requesting it.
+    If the <topic\> parameter is an empty string,
+    the topic for that channel will be removed.
+
+    Numeric Replies:
+    - command::ERR_NEEDMOREPARAMS
+    - command::ERR_NOTONCHANNEL
+    - command::RPL_NOTOPIC
+    - command::RPL_TOPIC
+    - command::ERR_CHANOPRIVSNEEDED
+    - command::ERR_NOCHANMODES
+
+    Examples:
+
+    :WiZ!jto\@tolsun.oulu.fi TOPIC \#test\n:New topic ; User Wiz setting the topic.
+
+    TOPIC \#test :another topic\n; Command to set the topic on \#test to "another topic".
+
+    TOPIC \#test :\n; Command to clear the topic on \#test.
+
+    TOPIC \#test\n; Command to check the topic for \#test.
+*/
     topic
 };
 
