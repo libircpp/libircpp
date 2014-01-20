@@ -138,13 +138,13 @@ public:
 	 * @param pfx   The user prefix who sets the new modes.
 	 * @param modes The new modes.
 	 */
-	void add_modes(const prefix& pfx, mode_list modes);
+	void set_modes(const prefix& pfx, mode_list modes);
 	/**
 	 * Removes the specified modes from the channel.
 	 * @param pfx   The user prefix who sets the modes.
 	 * @param modes The modes to remove.
 	 */
-	void remove_modes(const prefix& pfx, const mode_list& modes);
+	void unset_modes(const prefix& pfx, const mode_list& modes);
 	/**
 	 * Sends a message to the channel.
 	 * @param user    The user who sent the message.

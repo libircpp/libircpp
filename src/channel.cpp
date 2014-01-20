@@ -75,7 +75,7 @@ mode_block& channel::get_modes() { return modes; }
 */
 
 
-void channel::add_modes(const prefix& pfx, mode_list ml) {
+void channel::set_modes(const prefix& pfx, mode_list ml) {
 	mode_list user_modes;
 
 	auto p=util::separate(ml.begin(), ml.end(), std::back_inserter(user_modes),
@@ -89,7 +89,7 @@ void channel::add_modes(const prefix& pfx, mode_list ml) {
 	//TODO handle user modes
 }
 
-void channel::remove_modes(const prefix& pfx, const mode_list& modes) {
+void channel::unset_modes(const prefix& pfx, const mode_list& modes) {
 			
 }
 

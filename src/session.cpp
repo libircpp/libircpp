@@ -393,8 +393,8 @@ void session::handle_mode(const prefix& pfx,
 		auto chan=get_or_create_channel(agent)->second;
 		assert(chan);
 
-		if(c=='-') chan->remove_modes(pfx, parsed_modes); 
-		else       chan->add_modes(pfx, parsed_modes);
+		if(c=='-') chan->unset_modes(pfx, parsed_modes); 
+		else       chan->set_modes(pfx, parsed_modes);
 	}
 	else { //is user
 		auto& user=get_or_create_user(agent)->second;
