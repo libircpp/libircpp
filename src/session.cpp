@@ -385,19 +385,23 @@ void session::handle_reply(const prefix& pfx, command cmd,
 void session::handle_mode(const prefix& pfx, 
                           const std::string& agent,
                           const std::string& mode) {
+	char c;
+	mode_list parsed_modes;
+	std::tie(c, parsed_modes)=parse_modes(mode);
+
 	if(is_channel(agent)) {
-		auto& chan=*get_or_create_channel(agent)->second;
+		auto chan=get_or_create_channel(agent)->second;
+		assert(chan);
 
-		char c;
-		mode_list parsed_modes;
-		std::tie(c, parsed_modes)=parse_modes(mode);
-
-		//TODO use enum
-		if(c=='-') chan.remove_modes(pfx, parsed_modes); 
-		else       chan.add_modes(pfx, parsed_modes);
+		if(c=='-') chan->remove_modes(pfx, parsed_modes); 
+		else       chan->add_modes(pfx, parsed_modes);
 	}
 	else { //is user
-		
+		auto& user=get_or_create_user(agent)->second;
+		assert(user);
+
+		if(c=='-') user->get_modes().unset_mode(pfx, parsed_modes); 
+		else       user->get_modes().set_mode(pfx, parsed_modes); 	
 	}
 }	
 
@@ -408,7 +412,7 @@ const std::string& session::get_nick() const {
 
 user& session::get_self() {
 	//TODO: if user doesn't exist then make?
-	auto it=users.find(get_nick());
+	auto it=get_or_create_user(get_nick());
 
 	if(it==end(users)) {
 		assert(false && "not implemented");

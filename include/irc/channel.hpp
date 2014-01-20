@@ -257,7 +257,8 @@ public:
 	 * This signal is triggered when channel modes changed.
 	 *
 	 * @param f A callback function with the following signature:
-	 * @code void f( const prefix& pfx, const std::vector<std::pair<char, optional_string>>& modes)
+	 * @code void f(irc::channel& ch, const prefix& pfx, 
+	 *              const std::vector<std::pair<char, optional_string>>& modes)
 	 * @endcode
 	 * @return The connection object to disconnect from the signal.
 	 */
@@ -290,7 +291,6 @@ template<typename F>
 bsig::connection channel::connect_on_list_users(F&& f) {
 	return on_list_users.connect(std::forward<F>(f));
 }
-
 template<typename F>
 bsig::connection channel::connect_on_set_mode(F&& f) {
 	return modes.connect_on_set_mode(

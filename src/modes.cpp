@@ -56,13 +56,12 @@ void mode_block::unset_mode_impl(char sym) {
 }
 void mode_block::unset_mode(const prefix& p, char sym) {
 	unset_mode_impl(sym);
-	on_unset_mode(p, { sym }); 
+	on_unset_mode(p, { { sym, {} } });  //vector<pair<char, optional_string>>
 }
-void mode_block::unset_mode(const prefix& p, std::vector<char> syms) {
-	for(char sym : syms) unset_mode_impl(sym);
-	on_unset_mode(p, syms); 
+void mode_block::unset_mode(const prefix& p, const mode_list& modes) {
+	for(auto& mode : modes) unset_mode_impl(mode.first);
+	on_unset_mode(p, modes); 
 }
-
 
 bool mode_block::is_mode_set(char sym) const {
 	return modes.end()==find(sym);
