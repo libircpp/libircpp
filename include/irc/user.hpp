@@ -132,6 +132,17 @@ public:
 	 */
 	template<typename F>
 	bsig::connection connect_on_notice(F&& f);
+	/**
+	 * Connect to the on_set_mode signal.
+	 * This signal is triggered when user modes changed.
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(irc::user& usr, const prefix& pfx, 
+	 *              const std::vector<std::pair<char, optional_string>>& modes)
+	 * @endcode
+	 * @return The connection object to disconnect from the signal.
+	 */
+	template<typename F> bsig::connection connect_on_set_mode(F&& f);
 }; //class user
 
 template<typename F>
@@ -149,6 +160,14 @@ bsig::connection user::connect_on_nick_change(F&& f) {
 template<typename F>
 bsig::connection user::connect_on_notice(F&& f) {
 	return on_notice.connect(std::forward<F>(f));
+}
+template<typename F>
+bsig::connection user::connect_on_set_mode(F&& f) {
+	return modes.connect_on_set_mode(
+		[=](const prefix& pfx, const mode_list& ml) {
+			f(*this, pfx, ml);
+		}
+	);
 }
 
 } //namespace irc
