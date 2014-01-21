@@ -144,7 +144,7 @@ public:
 	 * @param pfx   The user prefix who sets the modes.
 	 * @param modes The modes to remove.
 	 */
-	void unset_modes(const prefix& pfx, const mode_list& modes);
+	void unset_modes(const prefix& pfx, mode_list modes);
 	/**
 	 * Sends a message to the channel.
 	 * @param user    The user who sent the message.
@@ -254,7 +254,7 @@ public:
 	template<typename F> bsig::connection connect_on_list_users(F&& f);
 	/**
 	 * Connect to the on_set_mode signal.
-	 * This signal is triggered when channel modes changed.
+	 * This signal is triggered when channel has modes set
 	 *
 	 * @param f A callback function with the following signature:
 	 * @code void f(irc::channel& ch, const prefix& pfx, 
@@ -263,6 +263,18 @@ public:
 	 * @return The connection object to disconnect from the signal.
 	 */
 	template<typename F> bsig::connection connect_on_set_mode(F&& f);
+	/**
+	 * Connect to the on_unset_mode signal.
+	 * This signal is triggered when channel has modes unset
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(irc::channel& ch, const prefix& pfx, 
+	 *              const std::vector<std::pair<char, optional_string>>& modes)
+	 * @endcode
+	 * @return The connection object to disconnect from the signal.
+	 */
+	template<typename F> bsig::connection connect_on_unset_mode(F&& f);
+
 }; //class channel
 
 
@@ -293,6 +305,14 @@ bsig::connection channel::connect_on_list_users(F&& f) {
 }
 template<typename F>
 bsig::connection channel::connect_on_set_mode(F&& f) {
+	return modes.connect_on_set_mode(
+		[=](const prefix& pfx, const mode_list& ml) {
+			f(*this, pfx, ml);
+		}
+	);
+}
+template<typename F>
+bsig::connection channel::connect_on_unset_mode(F&& f) {
 	return modes.connect_on_set_mode(
 		[=](const prefix& pfx, const mode_list& ml) {
 			f(*this, pfx, ml);
