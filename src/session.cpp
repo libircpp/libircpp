@@ -15,11 +15,12 @@
 
 #include "util.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <tuple> //tie
 #include <sstream> //ostringstream
 #include <stdexcept> //runtime_error
 #include <iostream>
-#include <fstream>
 
 namespace irc {
 
@@ -46,12 +47,6 @@ void session::prepare_connection() {
 			}
 		}
 	);
-
-	std::ofstream dbg { "dbg", std::ofstream::app };
-	dbg << "user name: " << user_name << '\n'
-	    << "nick name: " << nick << '\n'
-		<< "full name: " << fullname;
-
 	connection__->async_read();
 	std::ostringstream oss;
 	oss << "USER " << user_name << " 0 * :";
@@ -375,8 +370,22 @@ void session::handle_reply(const prefix& pfx, command cmd,
 			chan->set_topic(params[2]);
 		}
 		break;
-	default:
-		//std::cerr << "reply" << rp << std::endl;
+	default: {
+			auto cmd_as_string=to_string(cmd);
+			if(boost::starts_with(cmd_as_string, "ERR_")) {
+				std::ostringstream oss;
+				oss << cmd_as_string;
+				if(!params.empty()) {
+					oss << ": ";
+					for(const auto& s : params) oss << s << " ";
+				}
+				on_irc_error(oss.str());	
+			}
+			else if(boost::starts_with(cmd_as_string, "RPL_")) {
+				//TODO: on reply, maybe we don't care, as it basically suggests
+				//that what we asked was ok?
+			}
+		}
 		break;
 	}
 }

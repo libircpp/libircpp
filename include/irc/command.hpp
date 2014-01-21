@@ -24,6 +24,12 @@ constexpr raw_command_t rpl_max=999;
 //assuming value is in the range of raw_command_t
 command to_command(raw_command_t value);
 
+/**
+ * converts an irc::command to a string with the C MACRO like name
+ * used in the IRC RFC
+ */
+std::string to_string(command);
+
 /** 
     Reply codes and errors.
     RFC 2812: Error replies are found in the range from 400 to 599.

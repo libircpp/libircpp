@@ -217,8 +217,19 @@ public:
 	 */
 	template<typename F> bsig::connection connect_on_user_notice(F&& f);
 	/**
-	 * Connect to the on_new_user signal.
-	 * @todo what is this for?
+	 * Connect to the on_new_user signal
+	 * this signal is triggered when ever a new user is "known" to the system
+	 * either because they've joined a channel or sent you a privmsg or
+	 * other mechanism
+	 *
+	 * This is useful if you wish to add hooks to ALL users, such as
+	 * if you want to be able to capture any nick change you might do:
+	 *
+	 * @code session.connect_on_new_user([](irc::user& u) { 
+	 *		u.connect_on_nick_change(my_nick_change_handler); 
+	 * 	}
+	 * );
+	 * @endcode
 	 *
 	 * @param f A callback function with the following signature:
 	 * @code void f(user& u) @endcode
@@ -226,6 +237,25 @@ public:
 	 * @return The connection object to disconnect from the signal.
 	 */
 	template<typename F> bsig::connection connect_on_new_user(F&& f);
+	/**
+	 * Connect to the on_irc_error
+	 * This signal is triggered when ever the server has replied 
+	 * with an error message
+	 *
+	 * This is NOT:
+	 * 	- A failure with the connection
+	 * 	- A failure to parse a message
+	 * 	- An interal error with the library (algorithm failure and so on)
+	 *
+	 * In the IRC RFC with a numeric replies beginning with ERR_ or 
+	 * the ERROR: reply
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(user& u) @endcode
+	 *
+	 * @return The connection object to disconnect from the signal.
+	 */
+	template<typename F> bsig::connection connect_on_irc_error(F&& f);
 }; //class session
 
 
@@ -248,6 +278,10 @@ bsig::connection session::connect_on_user_notice(F&& f) {
 template<typename F> 
 bsig::connection session::connect_on_new_user(F&& f) {
 	return on_new_user.connect(std::forward<F>(f));
+}
+template<typename F> 
+bsig::connection session::connect_on_irc_error(F&& f) {
+	return on_irc_error.connect(std::forward<F>(f));
 }
 
 } //namespace irc

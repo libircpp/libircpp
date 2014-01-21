@@ -34,6 +34,7 @@ public:
 	optional_string try_get_mode_param(char sym);
 
 	template<typename F> bsig::connection connect_on_set_mode(F&& f);
+	template<typename F> bsig::connection connect_on_unset_mode(F&& f);
 private:
 	void set_mode_impl(char sym, const optional_string& param);
 	void unset_mode_impl(char sym);
@@ -47,6 +48,10 @@ private:
 template<typename F>
 bsig::connection mode_block::connect_on_set_mode(F&& f) {
 	return on_set_mode.connect(std::forward<F>(f));
+}
+template<typename F>
+bsig::connection mode_block::connect_on_unset_mode(F&& f) {
+	return on_unset_mode.connect(std::forward<F>(f));
 }
 
 std::ostream& operator<<(std::ostream& os, const mode_block& mb);

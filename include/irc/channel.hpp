@@ -313,7 +313,7 @@ bsig::connection channel::connect_on_set_mode(F&& f) {
 }
 template<typename F>
 bsig::connection channel::connect_on_unset_mode(F&& f) {
-	return modes.connect_on_set_mode(
+	return modes.connect_on_unset_mode(
 		[=](const prefix& pfx, const mode_list& ml) {
 			f(*this, pfx, ml);
 		}
