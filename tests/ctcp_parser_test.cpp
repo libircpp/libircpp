@@ -31,6 +31,7 @@ int test_main(int, char **) {
     BOOST_CHECK(cmd == ctcp::command::version);
     BOOST_CHECK(str == "a v1 b");
 
+    result   = {};
     test_str = "\001SOURCE\001";
     first    = test_str.begin();
     last     = test_str.end();
@@ -42,6 +43,7 @@ int test_main(int, char **) {
     BOOST_CHECK(cmd == ctcp::command::source);
     BOOST_CHECK(str == std::string{});
 
+    result   = {};
     test_str = "fake";
     first    = test_str.begin();
     last     = test_str.end();
@@ -53,6 +55,7 @@ int test_main(int, char **) {
     BOOST_CHECK(cmd == ctcp::command::none);
     BOOST_CHECK(str == std::string{});
 
+    result   = {};
     test_str = "\001PANG :a b c\001";
     first    = test_str.begin();
     last     = test_str.end();
@@ -64,6 +67,7 @@ int test_main(int, char **) {
     BOOST_CHECK(cmd == ctcp::command::none);
     BOOST_CHECK(str == std::string{});
 
+    result   = {};
     test_str = "\001TIME :Thu Aug 11 21:52:51 1994 CST\001";
     first    = test_str.begin();
     last     = test_str.end();
