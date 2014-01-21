@@ -10,6 +10,7 @@
 #define IRC_CLIENT_COMMAND_HPP
 
 #include <type_traits>
+#include <string>
 
 namespace irc {
 
