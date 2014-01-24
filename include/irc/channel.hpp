@@ -7,6 +7,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include "crtp_channel.hpp"
 #include "deref.hpp"
 #include "types.hpp"
 #include "modes.hpp"
@@ -18,14 +19,24 @@
 #include <string>
 
 namespace irc {
-/**
-    IRC channel class.
-*/
-class channel {
-public:
+
+class channel;
+
+template<typename T>
+struct channel_traits {
 	using user_container      =std::set<shared_user>;
 	using user_iterator       =boost::transform_iterator<deref, user_container::iterator>;
 	using const_user_iterator =boost::transform_iterator<deref, user_container::const_iterator>;
+}; //class channel_traits
+
+/**
+    IRC channel class.
+*/
+class channel : public crtp_channel<channel> {
+public:
+	using user_container     =typename channel_traits<channel>::user_container;
+	using user_iterator      =typename channel_traits<channel>::user_iterator;
+	using const_user_iterator=typename channel_traits<channel>::const_user_iterator;
 private:
 	session&              session_;
 	std::string           name;
@@ -34,9 +45,6 @@ private:
 	std::set<const user*> operators;
 
 	mode_block            modes;
-
-	//WTF doesn't this work?
-	//std::set<std::reference_wrapper<const user>> operators;
 //signals
 	sig_ch        on_channel_part;
 	sig_ch_usr_s  on_message;
@@ -52,7 +60,6 @@ private:
 
 	//helpers
 	bool is_nick_in_channel(const std::string& nick) const;
-
 public:
 	/**
 	 * Constructor.

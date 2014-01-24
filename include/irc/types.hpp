@@ -24,7 +24,7 @@ namespace irc {
 	class message;
 	class session;
 	class mode_block;
-	class mode_diff;
+	struct mode_diff;
 
 	namespace bsig=boost::signals2;
 
