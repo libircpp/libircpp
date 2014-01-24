@@ -20,7 +20,7 @@
 
 namespace irc {
 
-class channel;
+class channel_impl;
 
 template<typename T>
 struct channel_traits {
@@ -30,13 +30,13 @@ struct channel_traits {
 }; //class channel_traits
 
 /**
-    IRC channel class.
+    IRC channel_impl class.
 */
-class channel : public crtp_channel<channel> {
+class channel_impl : public crtp_channel<channel_impl> {
 public:
-	using user_container     =typename channel_traits<channel>::user_container;
-	using user_iterator      =typename channel_traits<channel>::user_iterator;
-	using const_user_iterator=typename channel_traits<channel>::const_user_iterator;
+	using user_container     =typename channel_traits<channel_impl>::user_container;
+	using user_iterator      =typename channel_traits<channel_impl>::user_iterator;
+	using const_user_iterator=typename channel_traits<channel_impl>::const_user_iterator;
 private:
 	session&              session_;
 	std::string           name;
@@ -51,12 +51,12 @@ private:
 	sig_ch_s      on_topic_change;
 	sig_ch_usr    on_user_join;
 	sig_ch_usr_os on_user_part;
-	sig_v         on_list_users;
+	sig_ch        on_list_users;
 //deleted functions
-	channel(const channel&)           =delete;
-	channel(channel&&)                =delete;
-	channel& operator=(const channel&)=delete;
-	channel& operator=(channel&&)     =delete;
+	channel_impl(const channel_impl&)           =delete;
+	channel_impl(channel_impl&&)                =delete;
+	channel_impl& operator=(const channel_impl&)=delete;
+	channel_impl& operator=(channel_impl&&)     =delete;
 
 	//helpers
 	bool is_nick_in_channel(const std::string& nick) const;
@@ -66,30 +66,30 @@ public:
 	 * @param connection__ The associated IRC session.
 	 * @param name_        The channel name.
 	 */
-	channel(session& connection__, std::string name_);
+	channel_impl(session& connection__, std::string name_);
 	/**
 	 * Returns the associated session object.
 	 * @return The associated session object.
 	 */
-	session& get_session();
+	session& get_session_impl();
 	/**
 	 * Returns the associated session object (const).
 	 * @return The associated session object.
 	 * @see get_session()
 	 */
-	const session& get_session() const;
+	const session& get_session_impl() const;
 
 	//USER INTERFACE
 	/**
 	 * Returns the channel name.
 	 * @return The channel name.
 	 */
-	const std::string& get_name()  const;
+	const std::string& get_name_impl()  const;
 	/**
 	 * Returns the channel topic.
 	 * @return The channel topic.
 	 */
-	const std::string& get_topic() const;
+	const std::string& get_topic_impl() const;
 	/**
 	 * Returns if the specified user is a channel operator.
 	 * @param u The user to check.
@@ -100,44 +100,47 @@ public:
 	 * Sends a message in to the channel.
 	 * @param msg The message to send.
 	 */
-	void async_send_message(const std::string& msg);
+	void send_privmsg_impl(const std::string& msg);
 	/**
-	 * Leaves the channel.
+	 * Resquest to leave channel.
+	 * @note you will not receive the on_part_signal, and 
+	 * you will continue to recieve other registered signals until 
+	 * the server recognises your request
 	 */
-	void async_part();
+	void send_part_impl();
 	/**
 	 * Returns an iterator to the beginning of the user list.
 	 * @return An iterator to the beginning of the user list.
 	 */
-	user_iterator begin_users();
+	user_iterator begin_users_impl();
 	/**
 	 * Returns an iterator to the end of the user list.
 	 * @return An iterator to the end of the user list.
 	 */
-	user_iterator end_users();
+	user_iterator end_users_impl();
 	/**
 	 * Returns a const iterator to the beginning of the user list.
 	 * @return A const iterator to the beginning of the user list.
-	 * @see begin_users()
+	 * @see begin_users_impl()
 	 */
-	const_user_iterator begin_users() const;
+	const_user_iterator begin_users_impl() const;
 	/**
 	 * Returns a const iterator to the end of the user list.
 	 * @return A const iterator to the end of the user list.
-	 * @see end_users()
+	 * @see end_users_impl()
 	 */
-	const_user_iterator end_users()   const;
+	const_user_iterator end_users_impl()   const;
 	/**
 	 * Returns the mode block for this channel.
 	 * @return the mode block for this channel.
 	 */
-	const mode_block& get_modes() const;
+	const mode_block& get_modes_impl() const;
 	/**
 	 * Returns the mode block for this channel (const version).
 	 * @return the mode block for this channel.
-	 * @see get_modes()
+	 * @see get_modes_impl()
 	 */
-	mode_block& get_modes();
+	mode_block& get_modes_impl();
 
 	//SYSTEM INTERFACE
 	/**
@@ -202,7 +205,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_message(F&& f);
+	template<typename F> bsig::connection connect_on_privmsg_impl(F&& f);
 	/**
 	 * Connect to the on_topic signal.
 	 * This signal is triggered when the topic has changed.
@@ -212,7 +215,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_topic_change(F&& f);
+	template<typename F> bsig::connection connect_on_topic_change_impl(F&& f);
 	/**
 	 * Connect to the on_user_join signal.
 	 * This signal is triggered when an user joins the channel.
@@ -222,7 +225,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_user_join(F&& f);
+	template<typename F> bsig::connection connect_on_user_join_impl(F&& f);
 	/**
 	 * Connect to the on_user_join signal.
 	 * This signal is triggered when an user leaves the channel.
@@ -232,7 +235,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_user_part(F&& f);
+	template<typename F> bsig::connection connect_on_user_part_impl(F&& f);
 	/**
 	 * Connect to the on_channel_part signal.
 	 * This signal is triggered when we leaves the channel.
@@ -242,7 +245,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_channel_part(F&& f);
+	template<typename F> bsig::connection connect_on_channel_part_impl(F&& f);
 	/**
 	 * Connect to the on_list_users signal.
 	 * This signal is triggered when we required a command::list.
@@ -252,7 +255,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_list_users(F&& f);
+	template<typename F> bsig::connection connect_on_list_users_impl(F&& f);
 	/**
 	 * Connect to the on_set_mode signal.
 	 * This signal is triggered when channel has modes set
@@ -263,37 +266,37 @@ public:
 	 * @endcode
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_mode_change(F&& f);
+	template<typename F> bsig::connection connect_on_mode_change_impl(F&& f);
 }; //class channel
 
 
 // Template impl
 template<typename F>
-bsig::connection channel::connect_on_message(F&& f) {
+bsig::connection channel_impl::connect_on_privmsg_impl(F&& f) {
 	return on_message.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_user_join(F&& f) {
+bsig::connection channel_impl::connect_on_user_join_impl(F&& f) {
 	return on_user_join.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_user_part(F&& f) {
+bsig::connection channel_impl::connect_on_user_part_impl(F&& f) {
 	return on_user_part.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_channel_part(F&& f) {
+bsig::connection channel_impl::connect_on_channel_part_impl(F&& f) {
 	return on_channel_part.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_topic_change(F&& f) {
+bsig::connection channel_impl::connect_on_topic_change_impl(F&& f) {
 	return on_topic_change.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_list_users(F&& f) {
+bsig::connection channel_impl::connect_on_list_users_impl(F&& f) {
 	return on_list_users.connect(std::forward<F>(f));
 }
 template<typename F>
-bsig::connection channel::connect_on_mode_change(F&& f) {
+bsig::connection channel_impl::connect_on_mode_change_impl(F&& f) {
 	return modes.connect_on_mode_change(
 		[=](const prefix& pfx, const mode_diff& md) {
 			f(*this, pfx, md);

@@ -88,7 +88,7 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 	bool             success;
 
 	std::tie(it, success)=channels.emplace(
-		name, std::make_shared<channel>(*this, name));
+		name, std::make_shared<channel_impl>(*this, name));
 
 	if(!success)
 		throw std::runtime_error("Unable to insert new channel: " + name); 

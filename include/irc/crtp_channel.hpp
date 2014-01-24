@@ -15,8 +15,12 @@ template<typename T> struct channel_traits;
  */
 template<typename ImplType>
 class crtp_channel {
+	crtp_channel(const crtp_channel&)           =delete;
+	crtp_channel(crtp_channel&&)                =delete;
+	crtp_channel& operator=(const crtp_channel&)=delete;
+	crtp_channel& operator=(crtp_channel&&)     =delete;
 protected:
-	crtp_channel()=default;
+	crtp_channel()                              =default;
 public:
 	using user_iterator      =typename channel_traits<ImplType>::user_iterator;
 	using const_user_iterator=typename channel_traits<ImplType>::const_user_iterator;
@@ -49,6 +53,11 @@ public:
 	 */
 	mode_block& get_modes();
 	/**
+	 * Returns the channel topic.
+	 * @return The channel topic.
+	 */
+	const std::string& get_topic() const;
+	/**
 	 * Send a private message to channel
 	 * Note: this is asynchronous
 	 *
@@ -56,22 +65,19 @@ public:
 	 * @throws if session.get_connection().is_ready() or session.is_active() is false
 	 */
 	void send_privmsg(const std::string& msg);
-
 	/**
 	 * Request to change the channel topic
 	 * @param str The new channel topic requested
 	 * @throws if session.get_connection().is_ready() or session.is_active() is false
 	 */
 	void change_topic(const std::string& str); 
-
 	/**
 	 * Requests to leave the channel
 	 * Note: this is asynchronous
 	 *
 	 * @throws if session.get_connection().is_ready() or session.is_active() is false
 	 */
-	void part();
-	
+	void send_part();
 	/**
 	 * Find a user in this channel by their nick
 	 * @return a channel_iterator to the user, 
@@ -133,6 +139,19 @@ public:
 	 */
 	template<typename F> bsig::connection connect_on_user_part(F&& f);
 	/**
+	 * Connect to the on_channel_join signal.
+	 * This signal is triggered when you part from a channel, usually as
+	 * a successful response to issueing the part mesage (chan.part())
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code 
+	 * void f(irc::channel& chan)
+	 * @endcode
+	 *
+	 * @return The connection object to disconnect from the signal.
+	 */
+	template<typename F> bsig::connection connect_on_channel_part(F&& f);
+	/**
 	 * Connect to the on_user_quit signal.
 	 * This signal is triggered when an user in this channel quit the IRC server
 	 * @note if a user is in multiple channels, and quits, then this signal will
@@ -172,6 +191,16 @@ public:
 	 * @return The connection object to disconnect from the signal.
 	 */
 	template<typename F> bsig::connection connect_on_topic_change(F&& f);
+	/**
+	 * Connect to the on_list_users signal.
+	 * This signal is triggered when we required a command::list.
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(irc::channel) @endcode
+	 *
+	 * @return The connection object to disconnect from the signal.
+	 */
+	template<typename F> bsig::connection connect_on_list_users(F&& f);
 	/**
 	 * Connect to the on_mode_change signal.
 	 * This signal is triggered when channel has modes have been change
@@ -213,119 +242,122 @@ const ImplType& get_impl(const crtp_channel<ImplType>& chan) {
 //ACCESSORS
 template<typename ImplType>
 session& crtp_channel<ImplType>::get_session() {
-	return get_impl(*this).get_session();
+	return get_impl(*this).get_session_impl();
 }
 template<typename ImplType>
 const session& crtp_channel<ImplType>::get_session() const {
-	return get_impl(*this).get_session();
+	return get_impl(*this).get_session_impl();
 }
 template<typename ImplType>
 const std::string& crtp_channel<ImplType>::get_name() const {
-	return get_impl(*this).get_name();
+	return get_impl(*this).get_name_impl();
 }
 template<typename ImplType>
 const mode_block& crtp_channel<ImplType>::get_modes() const {
-	return get_impl(*this).get_modes();
+	return get_impl(*this).get_modes_impl();
 }
 template<typename ImplType>
 mode_block& crtp_channel<ImplType>::get_modes() {
-	return get_impl(*this).get_modes();
+	return get_impl(*this).get_modes_impl();
+}
+template<typename ImplType>
+const std::string& crtp_channel<ImplType>::get_topic() const {
+	return get_impl(*this).get_topic_impl();
 }
 
 template<typename ImplType>
 typename crtp_channel<ImplType>::user_iterator 
 crtp_channel<ImplType>::find_user(const std::string& nick) {
-	return get_impl(*this).find_user(nick);
+	return get_impl(*this).find_user_impl(nick);
 }
 template<typename ImplType>
 typename crtp_channel<ImplType>::const_user_iterator 
 crtp_channel<ImplType>::find_user(const std::string& nick) const {
-	return get_impl(*this).find_user(nick);
+	return get_impl(*this).find_user_impl(nick);
 }
 template<typename ImplType>
 typename crtp_channel<ImplType>::user_iterator
 crtp_channel<ImplType>::begin_users() {
-	return get_impl(*this).begin_users();
+	return get_impl(*this).begin_users_impl();
 }
 template<typename ImplType>
 typename crtp_channel<ImplType>::user_iterator
 crtp_channel<ImplType>::end_users() {
-	return get_impl(*this).end_users();
+	return get_impl(*this).end_users_impl();
 }
 template<typename ImplType>
 typename crtp_channel<ImplType>::const_user_iterator 
 crtp_channel<ImplType>::begin_users() const {
-	return get_impl(*this).begin_users();
+	return get_impl(*this).begin_users_impl();
 }
 template<typename ImplType>
 typename crtp_channel<ImplType>::const_user_iterator 
 crtp_channel<ImplType>::end_users() const {
-	return get_impl(*this).end_users();
+	return get_impl(*this).end_users_impl();
 }
 
 //ASYNC API INTERACTION
 template<typename ImplType>
 void crtp_channel<ImplType>::send_privmsg(const std::string& msg) {
-	get_impl(*this).send_privmsg(msg);
+	//ImplType::send_privmsg(static_cast<ImplType*>(this), msg);
+	get_impl(*this).send_privmsg_impl(msg);
 }
 template<typename ImplType>
 void crtp_channel<ImplType>::change_topic(const std::string& str) {
-	get_impl(*this).change_topic(str);
+	get_impl(*this).change_topic_impl(str);
 }
 template<typename ImplType>
-void crtp_channel<ImplType>::part() {
-	get_impl(*this).part();
+void crtp_channel<ImplType>::send_part() {
+	get_impl(*this).send_part_impl();
 }
 
 //SIGNAL REGISTRATION
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_user_join(F&& f) {
-	return get_impl(*this).connect_on_user_join(std::forward<F>(f));
+	return get_impl(*this).connect_on_user_join_impl(std::forward<F>(f));
 }
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_user_part(F&& f) {
-	return get_impl(*this).connect_on_user_part(std::forward<F>(f));
+	return get_impl(*this).connect_on_user_part_impl(std::forward<F>(f));
+}
+template<typename ImplType>
+template<typename F> 
+bsig::connection crtp_channel<ImplType>::connect_on_channel_part(F&& f) {
+	return get_impl(*this).connect_on_channel_part_impl(std::forward<F>(f));
 }
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_user_quit(F&& f) {
-	return get_impl(*this).connect_on_user_quit(std::forward<F>(f));
+	return get_impl(*this).connect_on_user_quit_impl(std::forward<F>(f));
 }
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_privmsg(F&& f) {
-	return get_impl(*this).connect_on_privmsg(std::forward<F>(f));
+	return get_impl(*this).connect_on_privmsg_impl(std::forward<F>(f));
 }
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_topic_change(F&& f) {
-	return get_impl(*this).connect_on_topic_change(std::forward<F>(f));
+	return get_impl(*this).connect_on_topic_change_impl(std::forward<F>(f));
+}
+template<typename ImplType>
+template<typename F> 
+bsig::connection crtp_channel<ImplType>::connect_on_list_users(F&& f) {
+	return get_impl(*this).connect_on_list_users_impl(std::forward<F>(f));
 }
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_mode_change(F&& f) {
-	return get_impl(*this).connect_on_mode_change(std::forward<F>(f));
+	return get_impl(*this).connect_on_mode_change_impl(std::forward<F>(f));
 }
 template<typename ImplType>
 template<typename F> 
 bsig::connection crtp_channel<ImplType>::connect_on_user_mode_change(F&& f) {
-	return get_impl(*this).connect_on_user_mode_change(std::forward<F>(f));
+	return get_impl(*this).connect_on_user_mode_change_impl(std::forward<F>(f));
 }
 
 } //namespace irc
 
 #endif //IRC_CRTP_CHANNEL_HPP
-
-/*
-#ifndef IRC_CHANNEL_HPP
-#define IRC_CHANNEL_HPP
-
-#include "impl_channel.hpp"
-#include "crtp_channel.hpp"
-
-using channel=crtp_channel<impl_channel>;
-
-#endif IRC_CHANNEL_HPP
-*/

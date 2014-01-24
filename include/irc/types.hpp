@@ -17,14 +17,20 @@
  * required to use the library.
  */
 namespace irc {
+	template<typename ImplType> 
+	class crtp_channel;
+
 	struct prefix;
 	class connection;
 	class user;
-	class channel;
-	class message;
+	class channel_impl;
+	struct message;
 	class session;
 	class mode_block;
 	struct mode_diff;
+
+
+	using channel          =crtp_channel<channel_impl>;
 
 	namespace bsig=boost::signals2;
 
@@ -57,7 +63,7 @@ namespace irc {
 	using sig_p_md         =bsig::signal<void(const prefix&, const mode_diff&)>;
 
 	using shared_prefix    =std::shared_ptr<prefix>;
-	using shared_channel   =std::shared_ptr<channel>;
+	using shared_channel   =std::shared_ptr<channel_impl>;
 	using shared_connection=std::shared_ptr<connection>;
 	using shared_user      =std::shared_ptr<user>;
 } //namespace irc
