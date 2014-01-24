@@ -24,8 +24,18 @@
 
 namespace irc {
 
-bool is_channel(const std::string& s)  { return !s.empty() && s[0]=='#'; }
-bool is_operator(const std::string& s) { return !s.empty() && s[0]=='@'; }
+bool is_operator(const std::string& s) { 
+	return !s.empty() && s[0]=='@'; 
+}
+
+
+bool is_channel(const std::string& target) {
+    return !target.empty()
+	    && (target[0]=='#' || target[0]=='&' || 
+		    target[0]=='+' || target[0]=='!');
+}
+
+
 
 void session::prepare_connection() {
 	assert(connection__);
@@ -394,23 +404,21 @@ void session::handle_reply(const prefix& pfx, command cmd,
 void session::handle_mode(const prefix& pfx, 
                           const std::string& agent,
                           const std::string& mode) {
-	char c;
-	mode_list parsed_modes;
-	std::tie(c, parsed_modes)=parse_modes(mode);
+
+	mode_diff parsed_modes;
+	parsed_modes=parse_modes(mode);
 
 	if(is_channel(agent)) {
 		auto chan=get_or_create_channel(agent)->second;
 		assert(chan);
 
-		if(c=='-') chan->unset_modes(pfx, parsed_modes); 
-		else       chan->set_modes(pfx, parsed_modes);
+		chan->apply_mode_diff(pfx, std::move(parsed_modes));
 	}
 	else { //is user
 		auto& user=get_or_create_user(agent)->second;
 		assert(user);
 
-		if(c=='-') user->get_modes().unset_mode(pfx, parsed_modes); 
-		else       user->get_modes().set_mode(pfx, parsed_modes); 	
+		user->get_modes().apply_mode_diff(pfx, parsed_modes);
 	}
 }	
 

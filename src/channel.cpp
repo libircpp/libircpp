@@ -73,10 +73,9 @@ mode_block& channel::get_modes() { return modes; }
 /*
 ** System interface
 */
-
-
-void channel::set_modes(const prefix& pfx, mode_list ml) {
+void channel::apply_mode_diff(const prefix& pfx, mode_diff md) {
 	mode_list user_modes;
+	auto& ml=md.modes;
 
 	//separate user@channel modes
 	auto p=util::separate(ml.begin(), ml.end(), std::back_inserter(user_modes),
@@ -85,21 +84,7 @@ void channel::set_modes(const prefix& pfx, mode_list ml) {
 
 	ml.erase(p.first, ml.end());
 
-	modes.set_mode(pfx, ml);
-	//TODO handle user modes
-}
-
-void channel::unset_modes(const prefix& pfx, mode_list ml) {
-	mode_list user_modes;
-
-	//separate user@channel modes
-	auto p=util::separate(ml.begin(), ml.end(), std::back_inserter(user_modes),
-		[&](const mode_block::value_type& v) {
-			return v.second && is_nick_in_channel(*v.second); }); 
-
-	ml.erase(p.first, ml.end());
-
-	modes.unset_mode(pfx, ml);
+	modes.apply_mode_diff(pfx, md);
 	//TODO handle user modes
 }
 

@@ -24,8 +24,6 @@ mode_block::const_iterator mode_block::end() const {
 	return modes.end();
 }
 
-
-
 void mode_block::set_mode_impl(char sym, const optional_string& param) {
 	auto it=find(sym);
 	if(it==modes.end()) {
@@ -35,15 +33,17 @@ void mode_block::set_mode_impl(char sym, const optional_string& param) {
 		it->second=param;
 	}
 }
-void mode_block::set_mode(const prefix& p, char sym, const optional_string& param) {
-	set_mode_impl(sym, param);
-	on_set_mode(p, {std::make_pair(sym, param)});
-}
-void mode_block::set_mode(const prefix& p, const std::vector<value_type>& params) {
-	for(const auto& param : params) {
-		set_mode_impl(param.first, param.second);
+
+void mode_block::apply_mode_diff(const prefix& p, const mode_diff& md) {
+	if(md.change==mode_change::set) {
+		for(const auto& m : md.modes)
+			set_mode_impl(m.first, m.second);
 	}
-	on_set_mode(p, params);
+	else {
+		for(const auto& m : md.modes)
+			unset_mode_impl(m.first);
+	}
+	on_mode_change(p, md);
 }
 
 
@@ -53,14 +53,6 @@ void mode_block::unset_mode_impl(char sym) {
 	if(it!=modes.end()) {
 		modes.erase(it);			
 	}
-}
-void mode_block::unset_mode(const prefix& p, char sym) {
-	unset_mode_impl(sym);
-	on_unset_mode(p, { { sym, {} } });  //vector<pair<char, optional_string>>
-}
-void mode_block::unset_mode(const prefix& p, const mode_list& modes) {
-	for(auto& mode : modes) unset_mode_impl(mode.first);
-	on_unset_mode(p, modes); 
 }
 
 bool mode_block::is_mode_set(char sym) const {
@@ -84,6 +76,19 @@ std::ostream& operator<<(std::ostream& os, const mode_block& mb) {
 	return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const mode_list& ml) {
+	for(const auto& m : ml) {
+		os << m.first;
+		if(m.second) os << '(' << *m.second << ')';
+	}
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const mode_diff& md) {
+	return os << ( md.change == mode_change::set ? '+' : '-' )
+	          << md.modes;
+}
+
 std::string to_string(const mode_block& mb) {
 	std::ostringstream oss;
 	oss << mb;
@@ -92,40 +97,45 @@ std::string to_string(const mode_block& mb) {
 
 std::string to_string(const mode_list& ml) {
 	std::ostringstream oss;
-	for(const auto& m : ml) {
-		oss << m.first;
-		if(m.second) oss << '(' << *m.second << ')';
-	}
+	oss << ml;
 	return oss.str();
 }
 
+std::string to_string(const mode_diff& md) {
+	std::ostringstream oss;
+	oss << md;
+	return oss.str();
+}
+
+} //namespace irc
+
+BOOST_FUSION_ADAPT_STRUCT(
+	irc::mode_diff,
+	(irc::mode_change, change)
+	(irc::mode_list,   modes)
+)
+
+namespace irc {
+
 namespace qi=boost::spirit::qi;
 
-template<typename T>
-using rule=qi::rule<std::string::const_iterator, T(), qi::space_type>;
+mode_diff parse_modes(const std::string& entries) {
+	using iterator=std::string::const_iterator;
 
-act_mode parse_modes(const std::string& entries) {
-
-	qi::rule<std::string::const_iterator, mode_block::value_type()> mode=
+	qi::symbols<char, mode_change> add_remove;
+	add_remove.add("+", mode_change::set)("-", mode_change::unset);
+	//TODO should I really use lexeme?
+	qi::rule<iterator, mode_block::value_type()> mode=
 		qi::lexeme[ ~qi::char_(' ')  >> -( ' ' >> +qi::char_ )];
 
-	rule<act_mode> modes=qi::char_("+-") >> +mode;
+	qi::rule<iterator, mode_diff(), qi::space_type> modes_diff=
+		add_remove >> +mode;
 
-	act_mode mp;
-	qi::phrase_parse(entries.begin(), entries.end(), modes, qi::space, mp);
+	mode_diff md;
+	qi::phrase_parse(entries.begin(), entries.end(), 
+		modes_diff, qi::space, md);
 	
-	return mp;
-	/*
-	if(boost::fusion::at_c<0>(mp) == '+') {
-		mb.set_mode(boost::fusion::at_c<1>(mp));
-	}
-	else if(boost::fusion::at_c<0>(mp) == '-') { //TODO deuglify
-		std::vector<char> v;
-		for(auto& m : boost::fusion::at_c<1>(mp)) 
-			v.push_back(m.first);
-		mb.unset_mode(v);
-	}
-	*/
+	return md;
 }
 
 } //namespace irc

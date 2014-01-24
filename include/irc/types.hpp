@@ -23,11 +23,16 @@ namespace irc {
 	class channel;
 	class message;
 	class session;
+	class mode_block;
+	class mode_diff;
 
 	namespace bsig=boost::signals2;
 
 	using optional_string  =boost::optional<std::string>;
 	using optional_prefix  =boost::optional<prefix>;
+
+	using mode_entry       =std::pair<char, optional_string>;
+	using mode_list        =std::vector<mode_entry>;
 
 	using sig_p_2s         =bsig::signal<void(prefix, std::string, std::string)>;
 	using sig_s            =bsig::signal<void(std::string)>;
@@ -49,8 +54,7 @@ namespace irc {
 	using sig_ch_usr_s     =bsig::signal<void(channel&, user&, const std::string&)>;
 	using sig_ch_usr_os    =bsig::signal<void(channel&, user&, const optional_string&)>;
 
-	using sig_p_vc         =bsig::signal<void(const prefix&, const std::vector<char>&)>;
-	using sig_p_vcos       =bsig::signal<void(const prefix&, const std::vector<std::pair<char, optional_string>>&)>;
+	using sig_p_md         =bsig::signal<void(const prefix&, const mode_diff&)>;
 
 	using shared_prefix    =std::shared_ptr<prefix>;
 	using shared_channel   =std::shared_ptr<channel>;
