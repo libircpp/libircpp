@@ -50,7 +50,7 @@ struct ctcp_parser : qi::grammar<Iterator,
 
         ctcp_args %= +~char_('\001');
         ctcp_msg  %= ( (lit('\001') >> ctcp_cmd) >> -ctcp_args )
-                   | ( (attr(ctcp::command::none) >> attr(std::string{})) );
+                   | ( attr(ctcp::command::none) >> attr(std::string{}) );
     }
 
 private:

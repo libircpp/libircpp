@@ -4,85 +4,91 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef CHANNEL_HPP
-#define CHANNEL_HPP
+#ifndef IRC_CHANNEL_HPP
+#define IRC_CHANNEL_HPP
 
+#include "crtp_channel.hpp"
 #include "deref.hpp"
 #include "types.hpp"
 #include "modes.hpp"
 
 #include <boost/iterator/transform_iterator.hpp>
 
-#include <set>
-#include <map>
+#include <unordered_set>
 #include <string>
 
 namespace irc {
-/**
-    IRC channel class.
-*/
-class channel {
 
-	using user_container      =std::set<shared_user>;
+class channel_impl;
+
+template<typename T>
+struct channel_traits {
+	using user_container      =std::unordered_set<shared_user>;
 	using user_iterator       =boost::transform_iterator<deref, user_container::iterator>;
 	using const_user_iterator =boost::transform_iterator<deref, user_container::const_iterator>;
+}; //class channel_traits
 
+/**
+    IRC channel_impl class.
+*/
+class channel_impl : public crtp_channel<channel_impl> {
+public:
+	using user_container     =typename channel_traits<channel_impl>::user_container;
+	using user_iterator      =typename channel_traits<channel_impl>::user_iterator;
+	using const_user_iterator=typename channel_traits<channel_impl>::const_user_iterator;
+private:
 	session&              session_;
 	std::string           name;
 	std::string           topic;
 	user_container        users;
-	std::set<const user*> operators;
-
 	mode_block            modes;
-
-	//WTF doesn't this work?
-	//std::set<std::reference_wrapper<const user>> operators;
 //signals
-	sig_ch        on_channel_part;
-	sig_ch_usr_s  on_message;
-	sig_ch_s      on_topic_change;
-	sig_ch_usr    on_user_join;
-	sig_ch_usr_os on_user_part;
-	sig_v         on_list_users;
+	sig_ch          on_channel_part;
+	sig_ch_usr_s    on_message;
+	sig_ch_s        on_topic_change;
+	sig_ch_usr      on_user_join;
+	sig_ch_usr_os   on_user_part;
+	sig_ch_usr_s    on_user_quit;
+	sig_ch          on_list_users;
+	sig_ch_p_usr_md on_user_mode_change;
 //deleted functions
-	channel(const channel&)           =delete;
-	channel(channel&&)                =delete;
-	channel& operator=(const channel&)=delete;
-	channel& operator=(channel&&)     =delete;
+	channel_impl(const channel_impl&)           =delete;
+	channel_impl(channel_impl&&)                =delete;
+	channel_impl& operator=(const channel_impl&)=delete;
+	channel_impl& operator=(channel_impl&&)     =delete;
 
 	//helpers
 	bool is_nick_in_channel(const std::string& nick) const;
-
 public:
 	/**
 	 * Constructor.
 	 * @param connection__ The associated IRC session.
 	 * @param name_        The channel name.
 	 */
-	channel(session& connection__, std::string name_);
+	channel_impl(session& connection__, std::string name_);
 	/**
 	 * Returns the associated session object.
 	 * @return The associated session object.
 	 */
-	session&       get_session();
+	session& get_session_impl();
 	/**
 	 * Returns the associated session object (const).
 	 * @return The associated session object.
 	 * @see get_session()
 	 */
-	const session& get_session() const;
+	const session& get_session_impl() const;
 
 	//USER INTERFACE
 	/**
 	 * Returns the channel name.
 	 * @return The channel name.
 	 */
-	const std::string& get_name()  const;
+	const std::string& get_name_impl()  const;
 	/**
 	 * Returns the channel topic.
 	 * @return The channel topic.
 	 */
-	const std::string& get_topic() const;
+	const std::string& get_topic_impl() const;
 	/**
 	 * Returns if the specified user is a channel operator.
 	 * @param u The user to check.
@@ -93,44 +99,68 @@ public:
 	 * Sends a message in to the channel.
 	 * @param msg The message to send.
 	 */
-	void async_send_message(const std::string& msg);
+	void send_privmsg_impl(const std::string& msg);
 	/**
-	 * Leaves the channel.
+	 * Resquest to leave channel.
+	 * @note you will not receive the on_part_signal, and 
+	 * you will continue to recieve other registered signals until 
+	 * the server recognises your request
 	 */
-	void async_part();
+	void send_part_impl();
 	/**
-	 * Returns an iterator to the beginning of the user list.
-	 * @return An iterator to the beginning of the user list.
+	 * Request to change the channel's topic
+	 * @note, on topic change will not be signalled until the server 
+	 * accepts the request, including deeming your users has sufficient
+	 * priveledges 
+	 * @param str The new channel topic requested
+	 * @throws if session.get_connection().is_ready() or session.is_active() is false
 	 */
-	user_iterator       begin_users();
+	void change_topic_impl(const std::string& topic);
+	/**
+	 * Find a user in this channel by their nick
+	 * @return a channel_iterator to the user, 
+	 * if the user is not in the list then the user_end() will be returned
+	 */
+	user_iterator find_user_impl(const std::string& nick);
+	/**
+	 * Find a user in this channel by their nick
+	 * @return a channel_iterator to the user, 
+	 * if the user is not in the list then the user_end() will be returned
+	 */
+	const_user_iterator find_user_impl(const std::string& nick) const;
 	/**
 	 * Returns an iterator to the end of the user list.
 	 * @return An iterator to the end of the user list.
 	 */
-	user_iterator       end_users();
+	user_iterator begin_users_impl();
+	/**
+	 * Returns an iterator to the end of the user list.
+	 * @return An iterator to the end of the user list.
+	 */
+	user_iterator end_users_impl();
 	/**
 	 * Returns a const iterator to the beginning of the user list.
 	 * @return A const iterator to the beginning of the user list.
-	 * @see begin_users()
+	 * @see begin_users_impl()
 	 */
-	const_user_iterator begin_users() const;
+	const_user_iterator begin_users_impl() const;
 	/**
 	 * Returns a const iterator to the end of the user list.
 	 * @return A const iterator to the end of the user list.
-	 * @see end_users()
+	 * @see end_users_impl()
 	 */
-	const_user_iterator end_users()   const;
+	const_user_iterator end_users_impl()   const;
 	/**
 	 * Returns the mode block for this channel.
 	 * @return the mode block for this channel.
 	 */
-	const mode_block& get_modes() const;
+	const mode_block& get_modes_impl() const;
 	/**
 	 * Returns the mode block for this channel (const version).
 	 * @return the mode block for this channel.
-	 * @see get_modes()
+	 * @see get_modes_impl()
 	 */
-	mode_block& get_modes();
+	mode_block& get_modes_impl();
 
 	//SYSTEM INTERFACE
 	/**
@@ -138,19 +168,13 @@ public:
 	 * @param pfx   The user prefix who sets the new modes.
 	 * @param modes The new modes.
 	 */
-	void set_modes(const prefix& pfx, mode_list modes);
-	/**
-	 * Removes the specified modes from the channel.
-	 * @param pfx   The user prefix who sets the modes.
-	 * @param modes The modes to remove.
-	 */
-	void unset_modes(const prefix& pfx, mode_list modes);
+	void apply_mode_diff(const prefix& pfx, mode_diff modes);
 	/**
 	 * Sends a message to the channel.
 	 * @param user    The user who sent the message.
 	 * @param message The message.
 	 */
-	void message(const shared_user& user, const std::string message);
+	void message(const shared_user& user, const std::string& message);
 	/**
 	 * An user has left the channel.
 	 * @param user The user who leaves the channel.
@@ -171,7 +195,7 @@ public:
 	/**
 	 * An user has quitted IRC.
 	 * @param user The user that has quitted.
-	 * @param msg  A quit message (optional).
+	 * @param msg  A quit message.
 	 */
 	void user_quit(const shared_user& user, const std::string& msg);
 	/**
@@ -201,7 +225,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_message(F&& f);
+	template<typename F> bsig::connection connect_on_privmsg_impl(F&& f);
 	/**
 	 * Connect to the on_topic signal.
 	 * This signal is triggered when the topic has changed.
@@ -211,7 +235,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_topic_change(F&& f);
+	template<typename F> bsig::connection connect_on_topic_change_impl(F&& f);
 	/**
 	 * Connect to the on_user_join signal.
 	 * This signal is triggered when an user joins the channel.
@@ -221,7 +245,7 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_user_join(F&& f);
+	template<typename F> bsig::connection connect_on_user_join_impl(F&& f);
 	/**
 	 * Connect to the on_user_join signal.
 	 * This signal is triggered when an user leaves the channel.
@@ -231,17 +255,27 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_user_part(F&& f);
+	template<typename F> bsig::connection connect_on_user_part_impl(F&& f);
+	/**
+	 * Connect to the on_user_quit signal.
+	 * This signal is triggered when a user in this channel quit the irc server
+	 *
+	 * @param f A callback function with the following signature:
+	 * @code void f(channel& chan, user& usr, const std::string& msg) @endcode
+	 *
+	 * @return The connection object to disconnect from the signal.
+	 */
+	template<typename F> bsig::connection connect_on_user_quit_impl(F&& f);
 	/**
 	 * Connect to the on_channel_part signal.
-	 * This signal is triggered when we leaves the channel.
+	 * This signal is triggered when we leave the channel.
 	 *
 	 * @param f A callback function with the following signature:
 	 * @code void f(channel& chan) @endcode
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_channel_part(F&& f);
+	template<typename F> bsig::connection connect_on_channel_part_impl(F&& f);
 	/**
 	 * Connect to the on_list_users signal.
 	 * This signal is triggered when we required a command::list.
@@ -251,75 +285,77 @@ public:
 	 *
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_list_users(F&& f);
+	template<typename F> bsig::connection connect_on_list_users_impl(F&& f);
 	/**
 	 * Connect to the on_set_mode signal.
 	 * This signal is triggered when channel has modes set
 	 *
 	 * @param f A callback function with the following signature:
-	 * @code void f(irc::channel& ch, const prefix& pfx, 
-	 *              const std::vector<std::pair<char, optional_string>>& modes)
+	 * @code void f(irc::channel& ch, const irc::prefix& pfx, 
+	 *              const irc::mode_diff& modes)
 	 * @endcode
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_set_mode(F&& f);
+	template<typename F> bsig::connection connect_on_mode_change_impl(F&& f);
 	/**
-	 * Connect to the on_unset_mode signal.
-	 * This signal is triggered when channel has modes unset
+	 * Connect to the on_user_mode_change signal.
+	 * This signal is triggered when the mode for a user in channel
+	 * get change, such as adding voice +v and opping +o
 	 *
 	 * @param f A callback function with the following signature:
-	 * @code void f(irc::channel& ch, const prefix& pfx, 
-	 *              const std::vector<std::pair<char, optional_string>>& modes)
+	 * @code void f(irc::channel& ch, 
+	 *              irc::user& usr, 
+	 *              const irc::prefix& pfx,
+	 *              const irc::mode_diff& modes)
 	 * @endcode
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_unset_mode(F&& f);
-
+	template<typename F> bsig::connection connect_on_user_mode_change_impl(F&& f);
 }; //class channel
 
 
 // Template impl
 template<typename F>
-bsig::connection channel::connect_on_message(F&& f) {
+bsig::connection channel_impl::connect_on_privmsg_impl(F&& f) {
 	return on_message.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_user_join(F&& f) {
+bsig::connection channel_impl::connect_on_user_join_impl(F&& f) {
 	return on_user_join.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_user_part(F&& f) {
+bsig::connection channel_impl::connect_on_user_quit_impl(F&& f) {
+	return on_user_quit.connect(std::forward<F>(f));	
+}
+template<typename F>
+bsig::connection channel_impl::connect_on_user_part_impl(F&& f) {
 	return on_user_part.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_channel_part(F&& f) {
+bsig::connection channel_impl::connect_on_channel_part_impl(F&& f) {
 	return on_channel_part.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_topic_change(F&& f) {
+bsig::connection channel_impl::connect_on_topic_change_impl(F&& f) {
 	return on_topic_change.connect(std::forward<F>(f));	
 }
 template<typename F>
-bsig::connection channel::connect_on_list_users(F&& f) {
+bsig::connection channel_impl::connect_on_list_users_impl(F&& f) {
 	return on_list_users.connect(std::forward<F>(f));
 }
 template<typename F>
-bsig::connection channel::connect_on_set_mode(F&& f) {
-	return modes.connect_on_set_mode(
-		[=](const prefix& pfx, const mode_list& ml) {
-			f(*this, pfx, ml);
+bsig::connection channel_impl::connect_on_mode_change_impl(F&& f) {
+	return modes.connect_on_mode_change(
+		[=](const prefix& pfx, const mode_diff& md) {
+			f(*this, pfx, md);
 		}
 	);
 }
 template<typename F>
-bsig::connection channel::connect_on_unset_mode(F&& f) {
-	return modes.connect_on_unset_mode(
-		[=](const prefix& pfx, const mode_list& ml) {
-			f(*this, pfx, ml);
-		}
-	);
+bsig::connection channel_impl::connect_on_user_mode_change_impl(F&& f) {
+	return on_user_mode_change.connect(std::forward<F>(f));
 }
 
 } //namespace irc
 
-#endif //CHANNEL_HPP
+#endif //IRC_CHANNEL_HPP

@@ -4,14 +4,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include "connection.hpp"
 #include "session.hpp"
+#include "connection.hpp"
 #include "message.hpp"
 #include "channel.hpp"
 #include "prefix.hpp"
 #include "user.hpp"
-
-//#include "numeric_replies.hpp"
 
 #include "util.hpp"
 
@@ -20,12 +18,18 @@
 #include <tuple> //tie
 #include <sstream> //ostringstream
 #include <stdexcept> //runtime_error
-#include <iostream>
 
 namespace irc {
 
-bool is_channel(const std::string& s)  { return !s.empty() && s[0]=='#'; }
-bool is_operator(const std::string& s) { return !s.empty() && s[0]=='@'; }
+bool is_operator(const std::string& s) { 
+	return !s.empty() && s[0]=='@'; 
+}
+
+bool is_channel(const std::string& target) {
+    return !target.empty()
+	    && (target[0]=='#' || target[0]=='&' || 
+		    target[0]=='+' || target[0]=='!');
+}
 
 void session::prepare_connection() {
 	assert(connection__);
@@ -37,10 +41,17 @@ void session::prepare_connection() {
 				message msg;
 				std::tie(success, msg)=parse_message(raw_msg);
 				if(success) {
-					handle_reply(msg.prefix ? *msg.prefix : prefix{}, msg.command, msg.params);
+					handle_reply(msg.prefix ? *msg.prefix 
+						: prefix{}, msg.command, msg.params);
+				}
+				else {
+					std::ostringstream oss;
+					oss << "could not parse command: " << raw_msg;
+					on_protocol_error(oss.str());
 				}
 			}
 			catch(const std::exception& e) {
+				//TODO: we need to be more specific here, these all irc_errors
 				std::ostringstream oss;
 				oss << "could not parse command: " << e.what();
 				on_irc_error(oss.str());
@@ -78,7 +89,7 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 	bool             success;
 
 	std::tie(it, success)=channels.emplace(
-		name, std::make_shared<channel>(*this, name));
+		name, std::make_shared<channel_impl>(*this, name));
 
 	if(!success)
 		throw std::runtime_error("Unable to insert new channel: " + name); 
@@ -102,7 +113,7 @@ session::user_iterator session::create_new_user(const std::string& name,
 	bool          success;
 
 	std::tie(it, success)=users.emplace(
-		name, std::make_shared<user>(name, pfx));
+		name, std::make_shared<user_impl>(name, pfx));
 
 	if(name!=get_nick()) { //or maybe user==get_self() ?
 		on_new_user(*it->second);
@@ -117,10 +128,7 @@ session::user_iterator session::create_new_user(const std::string& name,
 session::user_iterator session::get_or_create_user(const std::string& user_name) {
 	assert(user_name.size() > 0);
 
-	const auto& mus = is_operator(user_name)
-	                ? std::string { user_name.begin() + 1, user_name.end() }
-	                : user_name
-	                ;
+	const auto& mus=is_operator(user_name) ? user_name.substr(1) : user_name;
 
 	auto it=users.find(mus);
 
@@ -248,7 +256,9 @@ void session::handle_quit(const prefix& pfx,
 		users.erase(user_it);
 	}
 	else {
-		std::cerr << "QUIT: unknown nick prefix is: " << pfx << std::endl;
+		on_protocol_error(
+			"QUIT message recieved for missing nick: prefix is: " + 
+				to_string(pfx));
 	}
 }
 
@@ -394,23 +404,21 @@ void session::handle_reply(const prefix& pfx, command cmd,
 void session::handle_mode(const prefix& pfx, 
                           const std::string& agent,
                           const std::string& mode) {
-	char c;
-	mode_list parsed_modes;
-	std::tie(c, parsed_modes)=parse_modes(mode);
+
+	mode_diff parsed_modes;
+	parsed_modes=parse_modes(mode);
 
 	if(is_channel(agent)) {
 		auto chan=get_or_create_channel(agent)->second;
 		assert(chan);
 
-		if(c=='-') chan->unset_modes(pfx, parsed_modes); 
-		else       chan->set_modes(pfx, parsed_modes);
+		chan->apply_mode_diff(pfx, std::move(parsed_modes));
 	}
 	else { //is user
 		auto& user=get_or_create_user(agent)->second;
 		assert(user);
 
-		if(c=='-') user->get_modes().unset_mode(pfx, parsed_modes); 
-		else       user->get_modes().set_mode(pfx, parsed_modes); 	
+		user->get_modes().apply_mode_diff(pfx, parsed_modes);
 	}
 }	
 

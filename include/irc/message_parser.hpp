@@ -31,7 +31,7 @@ using params_type = decltype(irc::message::params);
 BOOST_FUSION_ADAPT_STRUCT(
 	irc::message,
 	(irc::optional_prefix, prefix)
-	(irc::command,        command)
+	(irc::command,         command)
 	(params_type,          params)
 )
 BOOST_FUSION_ADAPT_STRUCT(

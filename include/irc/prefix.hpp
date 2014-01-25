@@ -4,12 +4,13 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef PREFIX_HPP
-#define PREFIX_HPP
+#ifndef IRC_PREFIX_HPP
+#define IRC_PREFIX_HPP
 
 #include "types.hpp"
 
 #include <ostream>
+#include <string>
 
 namespace irc {
 /**
@@ -60,4 +61,4 @@ std::string to_string(const prefix& pfx);
 
 } //namespace irc
 
-#endif //PREFIX_HPP
+#endif //IRC_PREFIX_HPP

@@ -13,6 +13,9 @@
 #include "prefix.hpp"
 #include "command.hpp"
 
+#include <vector>
+#include <string>
+
 namespace irc {
 /**
     IRC message struct.

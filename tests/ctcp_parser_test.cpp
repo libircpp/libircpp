@@ -68,7 +68,7 @@ int test_main(int, char **) {
     BOOST_CHECK(str == std::string{});
 
     result   = {};
-    test_str = "\001TIME :Thu Aug 11 21:52:51 1994 CST\001";
+    test_str = "\001TIME   :Thu Aug 11 21:52:51 1994 CST\001";
     first    = test_str.begin();
     last     = test_str.end();
     success  = qi::phrase_parse( first, last, ctcp_parser, space, result );
