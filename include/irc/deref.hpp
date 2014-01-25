@@ -4,11 +4,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef DEREF_HPP
-#define DEREF_HPP
+#ifndef IRC_DEREF_HPP
+#define IRC_DEREF_HPP
 
 #include "types.hpp"
-//#include "user.hpp"
 
 #include <cassert>
 
@@ -30,23 +29,6 @@ struct second_deref {
 	}
 };
 
-/*
-
-inline user& deref(const shared_user& up) { 
-	assert(up && "invalid shared_ptr");
-	return *up.get(); 
-}
-inline const user& cderef(const shared_user& up) { 
-	assert(up && "invalid shared_ptr");
-	return *up.get(); 
-}
-
-inline const channel& cderef_chan(const shared_channel& up) { 
-	assert(up && "invalid shared_ptr");
-	return up->second.get(); 
-}
-*/
-
 } //namespace irc
 
-#endif //DEREF
+#endif //IRC_DEREF
