@@ -1,4 +1,5 @@
 
+	
 //          Copyright Joseph Dobson 2014
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -10,7 +11,6 @@
 #include "command.hpp"
 #include "deref.hpp"
 #include "types.hpp"
-#include "user.hpp"
 
 #include <boost/iterator/transform_iterator.hpp>
 
@@ -54,6 +54,7 @@ class session {
 	sig_usr_s                                on_user_notice;
 	sig_usr                                  on_new_user;
 	sig_s                                    on_irc_error;
+	sig_s                                    on_protocol_error;
 //helper
 	void prepare_connection();
 	channel_iterator create_new_channel(const std::string& channel_name);
@@ -120,7 +121,7 @@ public:
 	 * Returns a reference to our current user details.
 	 * @return A reference to our current user details.
 	 */
-	user&       get_self();
+	user& get_self();
 	/**
 	 * Returns a const reference to our current user details.
 	 * @return A const reference to our current user details.

@@ -4,9 +4,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef USER_HPP
-#define USER_HPP
+#ifndef IRC_USER_HPP
+#define IRC_USER_HPP
 
+#include "crtp_user.hpp"
 #include "types.hpp"
 #include "modes.hpp"
 #include "prefix.hpp"
@@ -18,7 +19,7 @@ namespace irc {
 /**
  * The user class models and IRC user
  */
-class user {
+class user_impl : public crtp_user<user_impl> {
 	std::string  nick;
 	prefix       pfx;
 	mode_block   modes;
@@ -29,45 +30,45 @@ class user {
 	sig_usr_s    on_notice;
 
 //deleted functions
-	user(const user&)           =delete;
-	user(user&&)                =delete;
-	user& operator=(const user&)=delete;
-	user& operator=(user&&)     =delete;
+	user_impl(const user_impl&)           =delete;
+	user_impl(user_impl&&)                =delete;
+	user_impl& operator=(const user_impl&)=delete;
+	user_impl& operator=(user_impl&&)     =delete;
 public:
 	/**
 	 * Constructor.
 	 * @param nick_ The user nickname.
 	 */
-	user(std::string nick_);
+	user_impl(std::string nick_);
 	/**
 	 * Constructor.
 	 * @param nick_ The user nickname.
 	 * @param pfx_  The user hostmask.
 	 */
-	user(std::string nick_, prefix pfx_);
+	user_impl(std::string nick_, prefix pfx_);
 
 	//USER INTERFACE
 	/**
 	 * @brief returns the nick for this user
 	 * @return the name
 	 */
-	const std::string& get_nick()    const;
+	const std::string& get_nick_impl()    const;
 	/**
 	 * @brief returns the prefix for this user
 	 * @return the prefix
 	 */
-	const prefix&      get_prefix()  const;
+	const prefix& get_prefix_impl() const;
 	/**
 	 * @brief returns the mode block for this user
 	 * @return the mode block
 	 */
-	mode_block&        get_modes();
+	mode_block& get_modes_impl();
 	/**
 	 * @brief const version
 	 * @return the mode block
 	 * @see get_modes
 	 */
-	const mode_block & get_modes() const;
+	const mode_block& get_modes_impl() const;
 
 	//SYSTEM INTERFACE 
 	void set_nick(std::string nick_);
@@ -91,7 +92,7 @@ public:
 	 * @return the connection object to disconnect from the signal
 	 */
 	template<typename F>
-	bsig::connection connect_on_channel_message(F&& f);
+	bsig::connection connect_on_channel_message_impl(F&& f);
 	/**
 	 * @brief connect to the on_direct_message signal
 	 *
@@ -105,7 +106,7 @@ public:
 	 * @return the connection object to disconnect from the signal
 	 */
 	template<typename F>
-	bsig::connection connect_on_direct_message(F&& f);
+	bsig::connection connect_on_direct_message_impl(F&& f);
 	/**
 	 * @brief connect to the on_nick_change signal
 	 *
@@ -118,7 +119,7 @@ public:
 	 * @return the connection object to disconnect from the signal
 	 */	
 	template<typename F>
-	bsig::connection connect_on_nick_change(F&& f);
+	bsig::connection connect_on_nick_change_impl(F&& f);
 	/**
 	 * @brief connect to the on_notice signal
 	 *
@@ -131,7 +132,7 @@ public:
 	 * @return the connection object to disconnect from the signal
 	 */
 	template<typename F>
-	bsig::connection connect_on_notice(F&& f);
+	bsig::connection connect_on_notice_impl(F&& f);
 	/**
 	 * Connect to the on_set_change signal.
 	 * This signal is triggered when user's modes changed.
@@ -142,27 +143,27 @@ public:
 	 * @endcode
 	 * @return The connection object to disconnect from the signal.
 	 */
-	template<typename F> bsig::connection connect_on_mode_change(F&& f);
-}; //class user
+	template<typename F> bsig::connection connect_on_mode_change_impl(F&& f);
+}; //class user_impl
 
 template<typename F>
-bsig::connection user::connect_on_channel_message(F&& f) {
+bsig::connection user_impl::connect_on_channel_message_impl(F&& f) {
 	return on_channel_message.connect(std::forward<F>(f));
 }
 template<typename F>
-bsig::connection user::connect_on_direct_message(F&& f) {
+bsig::connection user_impl::connect_on_direct_message_impl(F&& f) {
 	return on_direct_message.connect(std::forward<F>(f));
 }
 template<typename F>
-bsig::connection user::connect_on_nick_change(F&& f) {
+bsig::connection user_impl::connect_on_nick_change_impl(F&& f) {
 	return on_nick_change.connect(std::forward<F>(f));
 }
 template<typename F>
-bsig::connection user::connect_on_notice(F&& f) {
+bsig::connection user_impl::connect_on_notice_impl(F&& f) {
 	return on_notice.connect(std::forward<F>(f));
 }
 template<typename F>
-bsig::connection user::connect_on_mode_change(F&& f) {
+bsig::connection user_impl::connect_on_mode_change_impl(F&& f) {
 	return modes.connect_on_mode_change(
 		[=](const prefix& pfx, const mode_diff& md) {
 			f(*this, pfx, md);
@@ -172,4 +173,4 @@ bsig::connection user::connect_on_mode_change(F&& f) {
 
 } //namespace irc
 
-#endif //USER_HPP
+#endif //IRC_USER_HPP

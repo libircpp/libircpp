@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include "channel.hpp"
+#include "user.hpp"
 #include "session.hpp"
 
 #include "util.hpp"
@@ -19,11 +20,9 @@ channel_impl::channel_impl(session& session__, std::string name_)
 {	}
 
 
-
 bool channel_impl::is_nick_in_channel(const std::string& nick) const {
-	return std::find_if(begin_users(), end_users(),
-		[&](const irc::user& u) { return u.get_nick() == nick; }
-	) == end_users();
+	return std::find_if(begin_users(), end_users(), [&](const irc::user& u) { 
+		return u.get_nick() == nick; }) == end_users();
 }
 
 /*
@@ -45,7 +44,7 @@ const session& channel_impl::get_session_impl() const { return session_; }
 const std::string& channel_impl::get_name_impl()   const { return name; }
 const std::string& channel_impl::get_topic_impl()  const { return name; }
 
-bool channel_impl::is_operator(const user& u) const { return operators.count(&u); }
+bool channel_impl::is_operator(const user& u) const { return false; }
 
 void channel_impl::send_privmsg_impl(const std::string& msg) {
 	session_.async_privmsg(get_name(), msg);
@@ -89,7 +88,7 @@ void channel_impl::apply_mode_diff(const prefix& pfx, mode_diff md) {
 	//TODO handle user modes
 }
 
-void channel_impl::message(const shared_user& user, const std::string message) {
+void channel_impl::message(const shared_user& user, const std::string& message) {
 	assert(user);
 	add_user(user);
 	on_message(*this, *user, message);
@@ -100,7 +99,6 @@ void channel_impl::user_part(const shared_user& user, const optional_string& msg
 	auto it=users.find(user);
 	if(it!=users.cend()) {
 		on_user_part(*this, *user, msg);
-		operators.erase(user.get());
 		users.erase(it);
 	} //else was never actually regestered..
 }
@@ -122,7 +120,6 @@ void channel_impl::user_quit(const shared_user& user, const std::string& msg) {
 	auto it=users.find(user);	
 	if(it!=users.cend()) {
 		on_user_part(*this, **it, msg);
-		operators.erase(user.get());
 		users.erase(it);
 	}
 }
@@ -133,7 +130,6 @@ void channel_impl::set_topic(std::string topic_) {
 }
 
 void channel_impl::set_operator(const user& u) {
-	operators.insert(&u);
 }
 
 void channel_impl::list_users() {
@@ -141,5 +137,3 @@ void channel_impl::list_users() {
 }
 
 } //namepsace irc
-
-
