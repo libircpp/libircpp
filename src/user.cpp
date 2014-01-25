@@ -30,6 +30,17 @@ const prefix& user_impl::get_prefix_impl() const { return pfx; }
 const mode_block& user_impl::get_modes_impl() const { return modes; }
 mode_block& user_impl::get_modes_impl() { return modes; }
 
+/*
+void user_impl::send_privmsg_impl(const std::string& msg) {
+	session_.async_privmsg(get_nick(), msg);
+}
+*/
+/*
+void user_impl::send_notice_impl(const std::string& msg) {
+	session_.async_notice(get_nick(), msg);
+}
+*/
+
 
 /*
 ** System interface
