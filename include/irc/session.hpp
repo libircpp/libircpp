@@ -46,7 +46,7 @@ class session {
 	std::shared_ptr<connection>           	 connection_;
 	channel_container                        channels_;
 	user_container                           users_;
-	std::string                              nick_, user_name_, fullname_, motd_;
+	std::string                              nickname_, username_, realname_, motd_;
 //callback
 	sig_s                                    on_motd;
 	sig_ch                                   on_join_channel;
@@ -60,35 +60,35 @@ class session {
 	channel_iterator create_new_channel(const std::string& channel_name);
 	channel_iterator get_or_create_channel(const std::string& channel_name);
 
-	user_iterator create_new_user(const std::string& user_name, 
+	user_iterator create_new_user(const std::string& username,
 	                              const prefix& pfx);
 	user_iterator get_or_create_user(const prefix& pfx);
-	user_iterator get_or_create_user(const std::string& nick);
+	user_iterator get_or_create_user(const std::string& nickname);
 //handlers
 	void handle_privmsg(const prefix&                   pfx,
 	                    const std::string&              target,
 	                    const std::string&              content);
 
 	void handle_notice (const prefix&                   pfx,
-	                    const std::string&              nick,
+	                    const std::string&              nickname,
 	                    const std::string&              msg);
 	
 	void handle_ping(   const prefix&                   pfx,
-	                    const std::string&              channel,
+	                    const std::string&              channel_name,
 	                    const optional_string&          msg);
 
-	void handle_topic(  const std::string&              channel,
+	void handle_topic(  const std::string&              channel_name,
 	                    std::string                     topic);
 
 	void handle_join(   const prefix&                   pfx,
-	                    const std::string&              channel);
+	                    const std::string&              channel_name);
 
 	void handle_part(   const prefix&                   pfx,
-	                    const std::string&              channel,
+	                    const std::string&              channel_name,
 	                    const optional_string&          msg);
 
 	void handle_quit(   const prefix&                   pfx,
-	                    const std::string&              channel);
+	                    const std::string&              channel_name);
 
 	void handle_reply(  const prefix&                   pfx,
 	                    command                         cmd,
@@ -106,12 +106,12 @@ public:
 	/**
 	 * Constructor.
 	 * @param conn      An enstablished IRC connection.
-	 * @param nick      A nickname.
-	 * @param user_name An user name.
-	 * @param fullname  A real, full user name.
+	 * @param nickname  A nickname.
+	 * @param username  An user name.
+	 * @param realname  A real, full user name.
 	 */
 	session(std::shared_ptr<connection> conn,
-	        std::string nick, std::string user_name, std::string fullname);
+	        std::string nickname, std::string username, std::string realname);
 	/**
 	 * Returns the user nick name.
 	 * @return The user nick name.

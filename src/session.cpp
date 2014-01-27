@@ -60,39 +60,39 @@ void session::prepare_connection() {
 	);
 	connection_->async_read();
 	std::ostringstream oss;
-	oss << "USER " << user_name_ << " 0 * :";
+	oss << "USER " << username_ << " 0 * :";
 
-	if(fullname_.empty()) oss << "*\r\n";
-	else                  oss << fullname_ << "\r\n";
+	if(realname_.empty()) oss << "*\r\n";
+	else                  oss << realname_ << "\r\n";
 
 	connection_->async_write(oss.str());
-	connection_->async_write("NICK "+nick_+"\r\n");
+	connection_->async_write("NICK "+nickname_+"\r\n");
 }
 
 session::session(std::shared_ptr<connection> conn, 
-                 std::string nick,
-                 std::string user_name,
-				 std::string fullname)
+                 std::string nickname,
+                 std::string username,
+				 std::string realname)
 :	connection_ { std::move(conn) }
-,	nick_       { std::move(nick)       }
-,	user_name_  { std::move(user_name)  }
-,	fullname_   { std::move(fullname)   }
+,	nickname_   { std::move(nickname) }
+,	username_   { std::move(username) }
+,	realname_   { std::move(realname) }
 {
 	assert(connection_ && "connection is invalid from start");
 	prepare_connection();
 }
 
-session::channel_iterator session::create_new_channel(const std::string& name) {
-	assert(channels_.count(name)==0);
+session::channel_iterator session::create_new_channel(const std::string& channel_name) {
+	assert(channels_.count(channel_name)==0);
 
 	channel_iterator it;
 	bool             success;
 
 	std::tie(it, success)=channels_.emplace(
-		name, std::make_shared<channel_impl>(*this, name));
+		channel_name, std::make_shared<channel_impl>(*this, channel_name));
 
 	if(!success)
-		throw std::runtime_error("Unable to insert new channel: " + name); 
+		throw std::runtime_error("Unable to insert new channel: " + channel_name);
 
 	return it;
 }
@@ -106,7 +106,7 @@ session::channel_iterator session::get_or_create_channel(const std::string& chan
 		return create_new_channel(channel_name);
 }
 
-session::user_iterator session::create_new_user(const std::string& name, 
+session::user_iterator session::create_new_user(const std::string& name,
                                                 const prefix& pfx) {
 	assert(users_.count(name)==0);
 	user_iterator it;
@@ -120,15 +120,15 @@ session::user_iterator session::create_new_user(const std::string& name,
 	}
 
 	if(!success)
-		throw std::runtime_error("Unable to insert new user: " + name); 
+		throw std::runtime_error("Unable to insert new user: " + name);
 
 	return it;
 }
 
-session::user_iterator session::get_or_create_user(const std::string& user_name) {
-	assert(user_name.size() > 0);
+session::user_iterator session::get_or_create_user(const std::string& username) {
+	assert(username.size() > 0);
 
-	const auto& mus=is_operator(user_name) ? user_name.substr(1) : user_name;
+	const auto& mus=is_operator(username) ? username.substr(1) : username;
 
 	auto it=users_.find(mus);
 
@@ -158,7 +158,7 @@ void session::handle_privmsg(const prefix& pfx,
 	if(pfx.nick) { //nick is an optional
 		auto user=get_or_create_user(pfx)->second; //TODO: by ref or move?
 		assert(user);
-		if(target == nick_) { //1 to 1
+		if(target == nickname_) { //1 to 1
 			user->direct_message(content);
 		}
 		else { //1 to channel
@@ -186,8 +186,8 @@ void session::handle_notice (const prefix&      pfx,
 	}
 }
 
-void session::handle_topic(const std::string& channel, std::string topic) {
-	auto chan=get_or_create_channel(channel)->second;
+void session::handle_topic(const std::string& channel_name, std::string topic) {
+	auto chan=get_or_create_channel(channel_name)->second;
 	assert(chan);
 	chan->set_topic(std::move(topic));
 }
@@ -196,29 +196,29 @@ void session::handle_ping(const prefix& pfx,
                           const std::string& server1,
                           const optional_string& server2) {
 	std::ostringstream oss;
-	oss << "PONG " << nick_ << " " << server1 << "\r\n";
+	oss << "PONG " << nickname_ << " " << server1 << "\r\n";
 	connection_->async_write(oss.str());
 }
 
 void session::handle_join(const prefix& pfx,
-                          const std::string& channel) {
+                          const std::string& channel_name) {
 	if(pfx.nick) {
-		auto chan=get_or_create_channel(channel)->second;
+		auto chan=get_or_create_channel(channel_name)->second;
 		auto user=get_or_create_user(pfx)->second;
 		assert(chan);
 		assert(user);
 		chan->user_join(user);
-		if(user->get_nick() == nick_) { //is_me?
+		if(user->get_nick() == nickname_) { //is_me?
 			on_join_channel(*chan);
 		}
 	}
 }
 
 void session::handle_part(const prefix& pfx,
-                          const std::string& channel,
+                          const std::string& channel_name,
                           const optional_string& msg) {
 	//TODO have just get
-	auto chan=get_or_create_channel(channel)->second;
+	auto chan=get_or_create_channel(channel_name)->second;
 	
 	auto user_it=get_or_create_user(pfx);
 	auto user_p=user_it->second;
@@ -228,7 +228,7 @@ void session::handle_part(const prefix& pfx,
 
 	if(user_p->get_nick()==get_self().get_nick()) {
 		//we havea left a channel
-		auto ch_it=channels_.find(channel);
+		auto ch_it=channels_.find(channel_name);
 		//TODO: perhaps set warning if channel isn't even in list?
 		if(ch_it!=channels_.end()) {
 			ch_it->second->part();
@@ -423,7 +423,7 @@ void session::handle_mode(const prefix& pfx,
 }	
 
 const std::string& session::get_nick() const {
-	return nick_;
+	return nickname_;
 }
 
 
