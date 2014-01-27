@@ -43,10 +43,10 @@ class session {
 												channel_container::const_iterator
 											>;
 //member variables
-	std::shared_ptr<connection>           	 connection__;
-	channel_container                        channels;
-	user_container                           users;
-	std::string                              nick, user_name, fullname, motd;
+	std::shared_ptr<connection>           	 connection_;
+	channel_container                        channels_;
+	user_container                           users_;
+	std::string                              nick_, user_name_, fullname_, motd_;
 //callback
 	sig_s                                    on_motd;
 	sig_ch                                   on_join_channel;
@@ -73,29 +73,29 @@ class session {
 	                    const std::string&              nick,
 	                    const std::string&              msg);
 	
-	void handle_ping(   const prefix&                   pfx,	
+	void handle_ping(   const prefix&                   pfx,
 	                    const std::string&              channel,
 	                    const optional_string&          msg);
 
 	void handle_topic(  const std::string&              channel,
 	                    std::string                     topic);
 
-	void handle_join(   const prefix&                   pfx,	
+	void handle_join(   const prefix&                   pfx,
 	                    const std::string&              channel);
 
-	void handle_part(   const prefix&                   pfx,	
+	void handle_part(   const prefix&                   pfx,
 	                    const std::string&              channel,
 	                    const optional_string&          msg);
 
-	void handle_quit(   const prefix&                   pfx,	
+	void handle_quit(   const prefix&                   pfx,
 	                    const std::string&              channel);
 
-	void handle_reply(  const prefix&                   pfx, 
-	                    command                         cmd, 
+	void handle_reply(  const prefix&                   pfx,
+	                    command                         cmd,
 	                    const std::vector<std::string>& params);
 
-	void handle_mode(   const prefix&                   pfx, 
-	                    const std::string&              agent,	
+	void handle_mode(   const prefix&                   pfx,
+	                    const std::string&              agent,
 	                    const std::string&              mode);
 //deleted functions
 	session(const session&)           =delete;
@@ -105,13 +105,13 @@ class session {
 public:
 	/**
 	 * Constructor.
-	 * @param connection_ An enstablished IRC connection.
-	 * @param nick        A nickname.
-	 * @param user_name_  An user name.
-	 * @param fullname_   A real, full user name.
+	 * @param conn      An enstablished IRC connection.
+	 * @param nick      A nickname.
+	 * @param user_name An user name.
+	 * @param fullname  A real, full user name.
 	 */
-	session(std::shared_ptr<connection> connection_,
-	        std::string nick, std::string user_name_, std::string fullname_);
+	session(std::shared_ptr<connection> conn,
+	        std::string nick, std::string user_name, std::string fullname);
 	/**
 	 * Returns the user nick name.
 	 * @return The user nick name.
@@ -261,7 +261,7 @@ public:
 
 
 template<typename F> 
-bsig::connection session::connect_on_motd(F&& f) { 
+bsig::connection session::connect_on_motd(F&& f) {
 	return on_motd.connect(std::forward<F>(f)); 
 }
 template<typename F> 

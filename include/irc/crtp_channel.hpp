@@ -45,7 +45,7 @@ public:
 	 * Get the name of the channel
 	 * @return the name of the channel
 	 */
-	const std::string& get_name() const; 
+	const std::string& get_name() const;
 	/**
 	 * Get mode object
 	 *

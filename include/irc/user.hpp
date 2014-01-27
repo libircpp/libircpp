@@ -20,9 +20,9 @@ namespace irc {
  * The user class models and IRC user
  */
 class user_impl : public crtp_user<user_impl> {
-	std::string  nick;
-	prefix       pfx;
-	mode_block   modes;
+	std::string  nick_;
+	prefix       pfx_;
+	mode_block   modes_;
 //signals
 	sig_ch_usr_s on_channel_message;
 	sig_usr_s    on_direct_message;
@@ -164,7 +164,7 @@ bsig::connection user_impl::connect_on_notice_impl(F&& f) {
 }
 template<typename F>
 bsig::connection user_impl::connect_on_mode_change_impl(F&& f) {
-	return modes.connect_on_mode_change(
+	return modes_.connect_on_mode_change(
 		[=](const prefix& pfx, const mode_diff& md) {
 			f(*this, pfx, md);
 		}

@@ -22,7 +22,7 @@ namespace irc {
  * IRC connection class.
  */
 class connection : public std::enable_shared_from_this<connection> {
-	enum class states { 
+	enum class states {
 		resolving, active, stopped
 	};
 public:
@@ -119,8 +119,8 @@ private:
 	void handle_write(  const boost::system::error_code& error,
 	                    std::size_t bytes_transferred);
 
-	const std::string                     delim { "\r\n" };
-	states                                state { states::resolving };
+	const std::string                     delim_{ "\r\n" };
+	states                                state_{ states::resolving };
 //signals
 	sig_v  on_resolve;
 	sig_v  on_connect;
@@ -128,34 +128,34 @@ private:
 	sig_s  on_network_error;
 
 //asio related
-	std::deque<std::string>                  write_buffer;
+	std::deque<std::string>                  write_buffer_;
 
-	boost::asio::ip::tcp::resolver::iterator endpoints;
-	boost::asio::streambuf                   streambuf;
-	boost::asio::ip::tcp::socket             socket;
-	boost::asio::ip::tcp::resolver           resolver;
-	boost::asio::ip::tcp::resolver::query    query;
+	boost::asio::ip::tcp::resolver::iterator endpoints_;
+	boost::asio::streambuf                   streambuf_;
+	boost::asio::ip::tcp::socket             socket_;
+	boost::asio::ip::tcp::resolver           resolver_;
+	boost::asio::ip::tcp::resolver::query    query_;
 }; //class connection
 
 
 template<typename F> 
-bsig::connection connection::connect_on_resolve(F&& f) { 
-	return on_resolve.connect(std::forward<F>(f)); 
+bsig::connection connection::connect_on_resolve(F&& f) {
+	return on_resolve.connect(std::forward<F>(f));
 }
 
 template<typename F> 
-bsig::connection connection::connect_on_connect(F&& f) { 
-	return on_connect.connect(std::forward<F>(f)); 
+bsig::connection connection::connect_on_connect(F&& f) {
+	return on_connect.connect(std::forward<F>(f));
 }
 
 template<typename F>
-bsig::connection connection::connect_on_read_msg(F&& f) { 
-	return on_read_msg.connect(std::forward<F>(f)); 
+bsig::connection connection::connect_on_read_msg(F&& f) {
+	return on_read_msg.connect(std::forward<F>(f));
 }
 
 template<typename F>
-bsig::connection connection::connect_on_network_error(F&& f) { 
-	return on_network_error.connect(std::forward<F>(f)); 
+bsig::connection connection::connect_on_network_error(F&& f) {
+	return on_network_error.connect(std::forward<F>(f));
 }
 
 } //namespace irc

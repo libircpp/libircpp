@@ -17,10 +17,10 @@
  * required to use the library.
  */
 namespace irc {
-	template<typename ImplType> 
+	template<typename ImplType>
 	class crtp_channel;
 
-	template<typename ImplType> 
+	template<typename ImplType>
 	class crtp_user;
 
 	struct prefix;
