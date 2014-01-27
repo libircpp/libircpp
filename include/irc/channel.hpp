@@ -38,10 +38,10 @@ public:
 	using const_user_iterator=typename channel_traits<channel_impl>::const_user_iterator;
 private:
 	session&              session_;
-	std::string           name;
-	std::string           topic;
-	user_container        users;
-	mode_block            modes;
+	std::string           name_;
+	std::string           topic_;
+	user_container        users_;
+	mode_block            modes_;
 //signals
 	sig_ch          on_channel_part;
 	sig_ch_usr_s    on_message;
@@ -317,27 +317,27 @@ public:
 // Template impl
 template<typename F>
 bsig::connection channel_impl::connect_on_privmsg_impl(F&& f) {
-	return on_message.connect(std::forward<F>(f));	
+	return on_message.connect(std::forward<F>(f));
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_user_join_impl(F&& f) {
-	return on_user_join.connect(std::forward<F>(f));	
+	return on_user_join.connect(std::forward<F>(f));
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_user_quit_impl(F&& f) {
-	return on_user_quit.connect(std::forward<F>(f));	
+	return on_user_quit.connect(std::forward<F>(f));
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_user_part_impl(F&& f) {
-	return on_user_part.connect(std::forward<F>(f));	
+	return on_user_part.connect(std::forward<F>(f));
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_channel_part_impl(F&& f) {
-	return on_channel_part.connect(std::forward<F>(f));	
+	return on_channel_part.connect(std::forward<F>(f));
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_topic_change_impl(F&& f) {
-	return on_topic_change.connect(std::forward<F>(f));	
+	return on_topic_change.connect(std::forward<F>(f));
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_list_users_impl(F&& f) {
@@ -345,7 +345,7 @@ bsig::connection channel_impl::connect_on_list_users_impl(F&& f) {
 }
 template<typename F>
 bsig::connection channel_impl::connect_on_mode_change_impl(F&& f) {
-	return modes.connect_on_mode_change(
+	return modes_.connect_on_mode_change(
 		[=](const prefix& pfx, const mode_diff& md) {
 			f(*this, pfx, md);
 		}

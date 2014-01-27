@@ -14,9 +14,9 @@
 
 namespace irc {
 
-channel_impl::channel_impl(session& session__, std::string name_)
+channel_impl::channel_impl(session& session__, std::string name__)
 :	session_ ( session__        )
-,	name     { std::move(name_) }
+,	name_    { std::move(name__) }
 {	}
 
 
@@ -31,7 +31,7 @@ bool channel_impl::is_nick_in_channel(const std::string& nick) const {
 bool channel_impl::add_user(const shared_user& user) {
 	assert(user);
 	bool success;
-	std::tie(std::ignore, success)=users.insert(user);
+	std::tie(std::ignore, success)=users_.insert(user);
 	return success;
 }
 
@@ -41,8 +41,8 @@ bool channel_impl::add_user(const shared_user& user) {
 session&       channel_impl::get_session_impl()       { return session_; }
 const session& channel_impl::get_session_impl() const { return session_; }
 
-const std::string& channel_impl::get_name_impl()   const { return name; }
-const std::string& channel_impl::get_topic_impl()  const { return name; }
+const std::string& channel_impl::get_name_impl()   const { return name_; }
+const std::string& channel_impl::get_topic_impl()  const { return name_; }
 
 bool channel_impl::is_operator(const user& u) const { return false; }
 
@@ -54,21 +54,21 @@ void channel_impl::send_privmsg_impl(const std::string& msg) {
 void channel_impl::send_part_impl() { session_.async_part(*this); }
 
 channel_impl::user_iterator channel_impl::begin_users_impl() {
-	return boost::make_transform_iterator(begin(users), deref{});
+	return boost::make_transform_iterator(begin(users_), deref{});
 }
 channel_impl::user_iterator channel_impl::end_users_impl() {
-	return boost::make_transform_iterator(end(users), deref{});
+	return boost::make_transform_iterator(end(users_), deref{});
 }
 channel_impl::const_user_iterator channel_impl::begin_users_impl() const {
-	return boost::make_transform_iterator(users.cbegin(), deref{});
+	return boost::make_transform_iterator(users_.cbegin(), deref{});
 }
 channel_impl::const_user_iterator channel_impl::end_users_impl() const {
-	return boost::make_transform_iterator(users.cend(), deref{});
+	return boost::make_transform_iterator(users_.cend(), deref{});
 }
 
 
-const mode_block& channel_impl::get_modes_impl() const { return modes; }
-mode_block& channel_impl::get_modes_impl() { return modes; }
+const mode_block& channel_impl::get_modes_impl() const { return modes_; }
+mode_block& channel_impl::get_modes_impl() { return modes_; }
 
 /*
 ** System interface
@@ -84,7 +84,7 @@ void channel_impl::apply_mode_diff(const prefix& pfx, mode_diff md) {
 
 	ml.erase(p.first, ml.end());
 
-	modes.apply_mode_diff(pfx, md);
+	modes_.apply_mode_diff(pfx, md);
 	//TODO handle user modes
 }
 
@@ -96,10 +96,10 @@ void channel_impl::message(const shared_user& user, const std::string& message) 
 
 void channel_impl::user_part(const shared_user& user, const optional_string& msg) {
 	assert(user);
-	auto it=users.find(user);
-	if(it!=users.cend()) {
+	auto it=users_.find(user);
+	if(it!=users_.cend()) {
 		on_user_part(*this, *user, msg);
-		users.erase(it);
+		users_.erase(it);
 	} //else was never actually regestered..
 }
 
@@ -117,16 +117,16 @@ void channel_impl::user_join(const shared_user& user) {
 }
 
 void channel_impl::user_quit(const shared_user& user, const std::string& msg) {
-	auto it=users.find(user);	
-	if(it!=users.cend()) {
+	auto it=users_.find(user);	
+	if(it!=users_.cend()) {
 		on_user_part(*this, **it, msg);
-		users.erase(it);
+		users_.erase(it);
 	}
 }
 
-void channel_impl::set_topic(std::string topic_) {
-	topic=std::move(topic_);
-	on_topic_change(*this, topic);
+void channel_impl::set_topic(std::string topic) {
+	topic_=std::move(topic);
+	on_topic_change(*this, topic_);
 }
 
 void channel_impl::set_operator(const user& u) {

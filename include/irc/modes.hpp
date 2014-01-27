@@ -50,7 +50,7 @@ private:
 	void unset_mode_impl(char sym);
 
 	sig_p_md  on_mode_change;
-	mode_list modes;
+	mode_list modes_;
 }; //class modes_block
 
 template<typename F>

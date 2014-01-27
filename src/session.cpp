@@ -27,14 +27,14 @@ bool is_operator(const std::string& s) {
 
 bool is_channel(const std::string& target) {
     return !target.empty()
-	    && (target[0]=='#' || target[0]=='&' || 
+	    && (target[0]=='#' || target[0]=='&' ||
 		    target[0]=='+' || target[0]=='!');
 }
 
 void session::prepare_connection() {
-	assert(connection__);
+	assert(connection_);
 
-	connection__->connect_on_read_msg(
+	connection_->connect_on_read_msg(
 		[&](const std::string& raw_msg) {
 			try {
 				bool success;
@@ -58,37 +58,37 @@ void session::prepare_connection() {
 			}
 		}
 	);
-	connection__->async_read();
+	connection_->async_read();
 	std::ostringstream oss;
-	oss << "USER " << user_name << " 0 * :";
+	oss << "USER " << user_name_ << " 0 * :";
 
-	if(fullname.empty()) oss << "*\r\n";
-	else                 oss << fullname << "\r\n";
+	if(fullname_.empty()) oss << "*\r\n";
+	else                  oss << fullname_ << "\r\n";
 
-	connection__->async_write(oss.str());
-	connection__->async_write("NICK "+nick+"\r\n");
+	connection_->async_write(oss.str());
+	connection_->async_write("NICK "+nick_+"\r\n");
 }
 
-session::session(std::shared_ptr<connection> connection_, 
-                 std::string nick_, 
-                 std::string user_name_,
-				 std::string fullname_) 
-:	connection__ { std::move(connection_) }
-,	nick         { std::move(nick_)       } 
-,	user_name    { std::move(user_name_)  } 
-,	fullname     { std::move(fullname_)   }
-{	
-	assert(connection__ && "connection is invalid from start");
+session::session(std::shared_ptr<connection> conn, 
+                 std::string nick,
+                 std::string user_name,
+				 std::string fullname)
+:	connection_ { std::move(conn) }
+,	nick_       { std::move(nick)       }
+,	user_name_  { std::move(user_name)  }
+,	fullname_   { std::move(fullname)   }
+{
+	assert(connection_ && "connection is invalid from start");
 	prepare_connection();
 }
 
 session::channel_iterator session::create_new_channel(const std::string& name) {
-	assert(channels.count(name)==0);
+	assert(channels_.count(name)==0);
 
 	channel_iterator it;
 	bool             success;
 
-	std::tie(it, success)=channels.emplace(
+	std::tie(it, success)=channels_.emplace(
 		name, std::make_shared<channel_impl>(*this, name));
 
 	if(!success)
@@ -98,9 +98,9 @@ session::channel_iterator session::create_new_channel(const std::string& name) {
 }
 
 session::channel_iterator session::get_or_create_channel(const std::string& channel_name) {
-	auto it=channels.find(channel_name);
+	auto it=channels_.find(channel_name);
 
-	if(it!=channels.cend())
+	if(it!=channels_.cend())
 		return it;
 	else 
 		return create_new_channel(channel_name);
@@ -108,11 +108,11 @@ session::channel_iterator session::get_or_create_channel(const std::string& chan
 
 session::user_iterator session::create_new_user(const std::string& name, 
                                                 const prefix& pfx) {
-	assert(users.count(name)==0);
+	assert(users_.count(name)==0);
 	user_iterator it;
 	bool          success;
 
-	std::tie(it, success)=users.emplace(
+	std::tie(it, success)=users_.emplace(
 		name, std::make_shared<user_impl>(name, pfx));
 
 	if(name!=get_nick()) { //or maybe user==get_self() ?
@@ -130,9 +130,9 @@ session::user_iterator session::get_or_create_user(const std::string& user_name)
 
 	const auto& mus=is_operator(user_name) ? user_name.substr(1) : user_name;
 
-	auto it=users.find(mus);
+	auto it=users_.find(mus);
 
-	if(it!=users.cend()) 
+	if(it!=users_.cend()) 
 		return it;
 	else 
 		return create_new_user(mus, { mus });
@@ -140,9 +140,9 @@ session::user_iterator session::get_or_create_user(const std::string& user_name)
 
 session::user_iterator session::get_or_create_user(const prefix& pfx) {
 	assert(pfx.nick);
-	auto it=users.find(*pfx.nick);
+	auto it=users_.find(*pfx.nick);
 
-	if(it!=users.cend())
+	if(it!=users_.cend())
 		return it;
 	else 
 		return create_new_user(*pfx.nick, pfx);
@@ -158,10 +158,10 @@ void session::handle_privmsg(const prefix& pfx,
 	if(pfx.nick) { //nick is an optional
 		auto user=get_or_create_user(pfx)->second; //TODO: by ref or move?
 		assert(user);
-		if(target == nick) { //1 to 1
+		if(target == nick_) { //1 to 1
 			user->direct_message(content);
 		}
-		else { //1 to channel 
+		else { //1 to channel
 			auto chan=get_or_create_channel(target)->second;
 			assert(chan);
 
@@ -196,8 +196,8 @@ void session::handle_ping(const prefix& pfx,
                           const std::string& server1,
                           const optional_string& server2) {
 	std::ostringstream oss;
-	oss << "PONG " << nick << " " << server1 << "\r\n";
-	connection__->async_write(oss.str());
+	oss << "PONG " << nick_ << " " << server1 << "\r\n";
+	connection_->async_write(oss.str());
 }
 
 void session::handle_join(const prefix& pfx,
@@ -208,13 +208,13 @@ void session::handle_join(const prefix& pfx,
 		assert(chan);
 		assert(user);
 		chan->user_join(user);
-		if(user->get_nick() == nick) { //is_me?
+		if(user->get_nick() == nick_) { //is_me?
 			on_join_channel(*chan);
 		}
 	}
 }
 
-void session::handle_part(const prefix& pfx,	
+void session::handle_part(const prefix& pfx,
                           const std::string& channel,
                           const optional_string& msg) {
 	//TODO have just get
@@ -228,19 +228,19 @@ void session::handle_part(const prefix& pfx,
 
 	if(user_p->get_nick()==get_self().get_nick()) {
 		//we havea left a channel
-		auto ch_it=channels.find(channel);
+		auto ch_it=channels_.find(channel);
 		//TODO: perhaps set warning if channel isn't even in list?
-		if(ch_it!=channels.end()) {
-			ch_it->second->part();			
+		if(ch_it!=channels_.end()) {
+			ch_it->second->part();
 		}
-		channels.erase(ch_it);
+		channels_.erase(ch_it);
 	}
 	else {
 		//a user has left a channel
 
 		chan->user_part(user_p, msg);
 
-		users.erase(user_it);
+		users_.erase(user_it);
 	}
 }
 
@@ -250,10 +250,10 @@ void session::handle_quit(const prefix& pfx,
 		auto user_it=get_or_create_user(pfx); //todo: optimise
 		auto user   =user_it->second;
 
-		for(auto& channel : channels) {
+		for(auto& channel : channels_) {
 			channel.second->user_quit(user, msg);
 		}
-		users.erase(user_it);
+		users_.erase(user_it);
 	}
 	else {
 		on_protocol_error(
@@ -327,24 +327,24 @@ void session::handle_reply(const prefix& pfx, command cmd,
 
 
 	case command::ERR_NOSUCHCHANNEL: // 403,
-		on_irc_error("No such channel");	
+		on_irc_error("No such channel");
 		break;
 	case command::RPL_MOTD: 
 	{
 		std::ostringstream oss; //TODO optimise for size=1 case?
-		if(!motd.empty()) oss << '\n';
+		if(!motd_.empty()) oss << '\n';
 		if(params.size() > 1) {
 			std::copy(params.cbegin()+1, params.cend(), 
 				std::ostream_iterator<std::string>(oss, " "));
 		}
-		motd+=oss.str();
+		motd_+=oss.str();
 		break;
 	}
 	case command::RPL_MOTDSTART:
-		motd.clear(); 
+		motd_.clear(); 
 		break;
 	case command::RPL_ENDOFMOTD:
-		on_motd(motd);
+		on_motd(motd_);
 		break;
 	case command::RPL_NAMREPLY:
 		if(params.size() > 3) { //
@@ -361,7 +361,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 							auto user=get_or_create_user(nick)->second;
 							assert(user);
 							//note this add user, not user join
-							chan->add_user(user);  
+							chan->add_user(user);
 						}
 					);
 				}
@@ -389,7 +389,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 					oss << ": ";
 					for(const auto& s : params) oss << s << " ";
 				}
-				on_irc_error(oss.str());	
+				on_irc_error(oss.str());
 			}
 			else if(boost::starts_with(cmd_as_string, "RPL_")) {
 				//TODO: on reply, maybe we don't care, as it basically suggests
@@ -423,7 +423,7 @@ void session::handle_mode(const prefix& pfx,
 }	
 
 const std::string& session::get_nick() const {
-	return nick;
+	return nick_;
 }
 
 
@@ -431,7 +431,7 @@ user& session::get_self() {
 	//TODO: if user doesn't exist then make?
 	auto it=get_or_create_user(get_nick());
 
-	if(it==end(users)) {
+	if(it==end(users_)) {
 		assert(false && "not implemented");
 	}
 	assert(it->second); //should be no nullptr shared_ptr in users
@@ -441,27 +441,27 @@ user& session::get_self() {
 
 session::const_user_iterator session::begin_users() const {
 	return boost::make_transform_iterator(
-		begin(users),
+		begin(users_),
 		second_deref{}
 	);
 }
 session::const_user_iterator session::end_users() const {
 	return boost::make_transform_iterator(
-		end(users),
+		end(users_),
 		second_deref{}
 	);
 }
 
 session::const_channel_iterator session::channel_begin() const {
 	return boost::make_transform_iterator(
-		begin(channels),
+		begin(channels_),
 		second_deref{}
 	);
 
 }
 session::const_channel_iterator session::channel_end()   const {
 	return boost::make_transform_iterator(
-		end(channels),
+		end(channels_),
 		second_deref{}
 	);
 }
@@ -473,27 +473,27 @@ session::const_channel_iterator session::channel_end()   const {
 void session::async_part(const channel& chan) {
 	std::ostringstream oss;
 	oss << "PART " << chan.get_name() << "\r\n";
-	connection__->async_write(oss.str());
+	connection_->async_write(oss.str());
 }
 void session::async_join(const std::string& channel_name) {
 	std::ostringstream oss;
 	oss << "JOIN " << channel_name << "\r\n";
-	connection__->async_write(oss.str());
+	connection_->async_write(oss.str());
 }
 void session::async_privmsg(const std::string& target, const std::string& msg) {
 	std::ostringstream oss;
 	oss << "PRIVMSG " << target << " :" << msg << "\r\n";
-	connection__->async_write(oss.str());
+	connection_->async_write(oss.str());
 }
 void session::async_change_nick(const std::string& desired_nick) {
 	std::ostringstream oss;
 	oss << "NICK " << desired_nick << "\r\n";
-	connection__->async_write(oss.str());
+	connection_->async_write(oss.str());
 }
 
 void session::stop() {
-	if(connection__) {
-		connection__->stop();
+	if(connection_) {
+		connection_->stop();
 	}
 }
 

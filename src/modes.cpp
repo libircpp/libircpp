@@ -15,25 +15,25 @@
 namespace irc {
 
 mode_block::const_iterator mode_block::find(char sym) const {
-	return std::find_if(modes.begin(), modes.end(), 
+	return std::find_if(modes_.begin(), modes_.end(),
 		[&](const value_type& v) { return v.first==sym; });
 }
 mode_block::iterator mode_block::find(char sym) {
-	return std::find_if(modes.begin(), modes.end(), 
+	return std::find_if(modes_.begin(), modes_.end(),
 		[&](const value_type& v) { return v.first==sym; });
 }
 
 mode_block::const_iterator mode_block::begin() const {
-	return modes.begin();
+	return modes_.begin();
 }
 mode_block::const_iterator mode_block::end() const {
-	return modes.end();
+	return modes_.end();
 }
 
 void mode_block::set_mode_impl(char sym, const optional_string& param) {
 	auto it=find(sym);
-	if(it==modes.end()) {
-		modes.emplace_back(sym, param);			
+	if(it==modes_.end()) {
+		modes_.emplace_back(sym, param);
 	}
 	else {
 		it->second=param;
@@ -56,18 +56,18 @@ void mode_block::apply_mode_diff(const prefix& p, const mode_diff& md) {
 
 void mode_block::unset_mode_impl(char sym) {
 	auto it=find(sym);
-	if(it!=modes.end()) {
-		modes.erase(it);			
+	if(it!=modes_.end()) {
+		modes_.erase(it);
 	}
 }
 
 bool mode_block::is_mode_set(char sym) const {
-	return modes.end()==find(sym);
+	return modes_.end()==find(sym);
 }
 
 optional_string mode_block::try_get_mode_param(char sym) {
 	auto it=find(sym);
-	if(it==modes.end()) {
+	if(it==modes_.end()) {
 		throw std::runtime_error(
 			"tring to retreive parater for non existant mode");
 	}
@@ -138,9 +138,9 @@ mode_diff parse_modes(const std::string& entries) {
 		add_remove >> +mode;
 
 	mode_diff md;
-	qi::phrase_parse(entries.begin(), entries.end(), 
+	qi::phrase_parse(entries.begin(), entries.end(),
 		modes_diff, qi::space, md);
-	
+
 	return md;
 }
 
