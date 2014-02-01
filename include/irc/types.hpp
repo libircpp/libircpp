@@ -32,10 +32,14 @@ namespace irc {
 	class mode_block;
 	struct mode_diff;
 
+	class simple_connection;
+	class persistant_connection;
+
 	using channel          =crtp_channel<channel_impl>;
 	using user             =crtp_user<user_impl>;
 
 	namespace bsig         =boost::signals2;
+	namespace ph           =std::placeholders;
 
 	using optional_string  =boost::optional<std::string>;
 	using optional_prefix  =boost::optional<prefix>;

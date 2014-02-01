@@ -132,9 +132,9 @@ void connection::handle_resolve(const boost::system::error_code& error,
 			std::bind(
 				&connection::handle_connect,
 				shared_from_this(),
-				ph::_1
+				ph::_1, ph::_2
 			)
-		);		
+		);
 		on_resolve();
 	}
 	else {
@@ -142,7 +142,8 @@ void connection::handle_resolve(const boost::system::error_code& error,
 	}
 }
 
-void connection::handle_connect(const boost::system::error_code& error) {
+void connection::handle_connect(const boost::system::error_code& error,
+		boost::asio::ip::tcp::resolver::iterator iterator) {
 	if(!error) {
 		state_=states::active;
 		on_connect();
