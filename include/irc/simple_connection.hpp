@@ -20,7 +20,7 @@ namespace ba=boost::asio;
  *
  */
 class simple_connection :
-	private std::enable_shared_from_this<simple_connection> {
+		public std::enable_shared_from_this<simple_connection> {
 	using message_buffer =std::deque<std::string>;
 
 	bool                  active_ { false };
@@ -29,6 +29,11 @@ class simple_connection :
 	ba::ip::tcp::resolver resolver_;
 	ba::ip::tcp::socket   socket_;
 	ba::streambuf         streambuf_;
+
+	sig_s on_resolve;
+	sig_s on_connect;
+	sig_s on_error;
+	sig_s on_read;
 
 	const std::string     delim_ { "\r\n" };
 
@@ -41,6 +46,9 @@ class simple_connection :
 
 	void handle_read(const boost::system::error_code& error,
 	                 std::size_t bytes_transferred);
+
+	void handle_write(const boost::system::error_code& error,
+	                  std::size_t bytes_transferred);
 public:
 	simple_connection(ba::io_service& io_service);
 
@@ -56,6 +64,23 @@ public:
 	template<typename F> bsig::connection connect_on_error(F&& f);
 	template<typename F> bsig::connection connect_on_read(F&& f);
 }; //class simple_session
+
+template<typename F>
+bsig::connection simple_connection::connect_on_resolve(F&& f) {
+	return on_resolve.connect(std::forward<F>(f));
+}
+template<typename F>
+bsig::connection simple_connection::connect_on_connect(F&& f) {
+	return on_connect.connect(std::forward<F>(f));
+}
+template<typename F>
+bsig::connection simple_connection::connect_on_error(F&& f) {
+	return on_error.connect(std::forward<F>(f));
+}
+template<typename F>
+bsig::connection simple_connection::connect_on_read(F&& f) {
+	return on_read.connect(std::forward<F>(f));
+}
 
 } //namespace irc
 
