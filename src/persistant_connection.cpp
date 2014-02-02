@@ -55,12 +55,12 @@ void persistant_connection::schedule_reconnect() {
 }
 
 
-void persistant_connection::write(const std::string& msg) {
+void persistant_connection::write(std::string msg) {
 	if(!connection_) {
 		throw IRC_MAKE_EXCEPTION("Can not write to a failed socket");
 	}
 	//may also throw, !connection_->is_ready();
-	connection_->write(msg);
+	connection_->write(std::move(msg));
 }
 
 bool persistant_connection::is_ready() const {

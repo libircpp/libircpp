@@ -35,18 +35,50 @@ class persistant_connection {
 	void initiate_connection();
 	void clear_callbacks();
 public:
+	/**
+	 * constructor for persistant_connection
+	 *
+	 * @param io_service the io_service to use
+	 * @param hostname to connect to
+	 * @param service to connect to
+	 */
 	persistant_connection(ba::io_service& io_service,
 		std::string hostname, std::string service);
-
+	/**
+	 * destructor for persistant_connection
+	 */
 	~persistant_connection();
-
+	/**
+	 * gets the hostname the connection is connected to
+	 *
+	 * returns the hostname
+	 */
 	const std::string get_hostname() const;
+	/**
+	 * gets the service the connection is connected to,
+	 * in most cases this is the port as a string. ie "6667"
+	 *
+	 * returns the service
+	 */
 	const std::string get_service() const;
-
+	/**
+	 * The connection is ready to be written to,
+	 * if this is false and you attempt to write
+	 * then an exception will be thrown
+	 *
+	 * return whether or not the connection is ready
+	 */
 	bool is_ready() const;
 
 	//void write(const std::string& str, std::function<void(const std::string&)>);
-	void write(const std::string& str);
+	/**
+	 * writes the string to the connection
+	 *
+	 * @param str the message to be written
+	 *
+	 * @throws irc::exception is throw is connection is !is_ready()
+	 */
+	void write(std::string str);
 
 	template<typename F> bsig::connection connect_on_resolve(F&& f);
 	template<typename F> bsig::connection connect_on_connect(F&& f);
