@@ -34,7 +34,9 @@ bool is_channel(const std::string& target) {
 void session::prepare_connection() {
 	assert(connection_);
 
-	connection_->connect_on_read_msg(
+	on_connect_handle.disconnect();
+
+	connection_->connect_on_read(
 		[&](const std::string& raw_msg) {
 			try {
 				bool success;
@@ -59,8 +61,11 @@ void session::prepare_connection() {
 		}
 	);
 	connection_->async_read();
+
+
 	std::ostringstream oss;
 	oss << "USER " << username_ << " 0 * :";
+
 
 	if(realname_.empty()) oss << "*\r\n";
 	else                  oss << realname_ << "\r\n";
@@ -69,18 +74,33 @@ void session::prepare_connection() {
 	connection_->async_write("NICK "+nickname_+"\r\n");
 }
 
-session::session(std::shared_ptr<connection> conn, 
+session::session(std::unique_ptr<persistant_connection>&& conn,
                  std::string nickname,
                  std::string username,
 				 std::string realname)
-:	connection_ { std::move(conn) }
+:	connection_ { std::move(conn)     }
 ,	nickname_   { std::move(nickname) }
 ,	username_   { std::move(username) }
 ,	realname_   { std::move(realname) }
 {
 	assert(connection_ && "connection is invalid from start");
-	prepare_connection();
+
+	if(connection_->is_ready()) {
+		prepare_connection();
+	}
+	else {
+		on_connect_handle=connection_->connect_on_connect(
+			std::bind(&session::prepare_connection, this));
+	}
 }
+
+session::session(std::string hostname, std::string service,
+                 std::string nickname, std::string username,
+				 std::string realname)
+:	session { 
+
+
+
 
 session::channel_iterator session::create_new_channel(const std::string& channel_name) {
 	assert(channels_.count(channel_name)==0);

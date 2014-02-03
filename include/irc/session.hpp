@@ -42,7 +42,7 @@ class session {
 												channel_container::const_iterator
 											>;
 //member variables
-	std::shared_ptr<connection>           	 connection_;
+	std::unique_ptr<persistant_connection>   connection_;
 	channel_container                        channels_;
 	user_container                           users_;
 	std::string                              nickname_, username_, realname_, motd_;
@@ -109,8 +109,15 @@ public:
 	 * @param username  An user name.
 	 * @param realname  A real, full user name.
 	 */
-	session(std::shared_ptr<connection> conn,
+	session(std::unqiue_ptr<persistant_connection>&& conn,
 	        std::string nickname, std::string username, std::string realname);
+
+
+	//TODO
+	//session(std::string hostname, std::string service,
+	//       std::string nickname, std::string username, std::string realname);
+
+
 	/**
 	 * Returns the user nick name.
 	 * @return The user nick name.
