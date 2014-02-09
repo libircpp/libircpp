@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include "session.hpp"
-#include "connection.hpp"
+#include "persistant_connection.hpp"
 #include "message.hpp"
 #include "channel.hpp"
 #include "prefix.hpp"
@@ -60,7 +60,7 @@ void session::prepare_connection() {
 			}
 		}
 	);
-	connection_->async_read();
+	connection_->start_read();
 
 
 	std::ostringstream oss;
@@ -70,8 +70,8 @@ void session::prepare_connection() {
 	if(realname_.empty()) oss << "*\r\n";
 	else                  oss << realname_ << "\r\n";
 
-	connection_->async_write(oss.str());
-	connection_->async_write("NICK "+nickname_+"\r\n");
+	connection_->write(oss.str());
+	connection_->write("NICK "+nickname_+"\r\n");
 }
 
 session::session(std::unique_ptr<persistant_connection>&& conn,
@@ -93,13 +93,6 @@ session::session(std::unique_ptr<persistant_connection>&& conn,
 			std::bind(&session::prepare_connection, this));
 	}
 }
-
-session::session(std::string hostname, std::string service,
-                 std::string nickname, std::string username,
-				 std::string realname)
-:	session { 
-
-
 
 
 session::channel_iterator session::create_new_channel(const std::string& channel_name) {
@@ -217,7 +210,7 @@ void session::handle_ping(const prefix& pfx,
                           const optional_string& server2) {
 	std::ostringstream oss;
 	oss << "PONG " << nickname_ << " " << server1 << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 
 void session::handle_join(const prefix& pfx,
@@ -493,22 +486,22 @@ session::const_channel_iterator session::channel_end()   const {
 void session::async_part(const channel& chan) {
 	std::ostringstream oss;
 	oss << "PART " << chan.get_name() << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 void session::async_join(const std::string& channel_name) {
 	std::ostringstream oss;
 	oss << "JOIN " << channel_name << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 void session::async_privmsg(const std::string& target, const std::string& msg) {
 	std::ostringstream oss;
 	oss << "PRIVMSG " << target << " :" << msg << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 void session::async_change_nick(const std::string& desired_nick) {
 	std::ostringstream oss;
 	oss << "NICK " << desired_nick << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 
 void session::stop() {

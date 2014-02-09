@@ -22,7 +22,6 @@ void simple_connection::handle_connect(const boost::system::error_code& error,
 			<< " Host: " << iter->host_name()
 			<< " Service: " << iter->service_name();
 
-		initiate_read();
 
 		on_connect(oss.str());
 	}
@@ -31,6 +30,14 @@ void simple_connection::handle_connect(const boost::system::error_code& error,
 		oss << "An error occured when trying to connect: " << error.message();
 		on_error(oss.str());
 	}
+}
+
+void simple_connection::start_read() {
+	if(!is_ready()) {
+		throw IRC_MAKE_EXCEPTION(
+			"can not start reading from an inactive connection");
+	}
+	initiate_read();
 }
 
 void simple_connection::initiate_read() {

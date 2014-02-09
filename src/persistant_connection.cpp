@@ -63,8 +63,23 @@ void persistant_connection::write(std::string msg) {
 	connection_->write(std::move(msg));
 }
 
+void persistant_connection::start_read() {
+	if(!connection_) {
+		throw IRC_MAKE_EXCEPTION("Can not start reading on failed socket");
+	}
+	connection_->start_read();
+}
+
 bool persistant_connection::is_ready() const {
 	return connection_ && connection_->is_ready();
+}
+
+void persistant_connection::stop() {
+	if(connection_) {
+		clear_callbacks();
+		connection_->disconnect();
+		connection_.reset();
+	}
 }
 
 } //namespace irc

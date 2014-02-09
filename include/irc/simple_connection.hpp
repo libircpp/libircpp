@@ -55,6 +55,7 @@ public:
 	void start(const std::string& hostname, const std::string& service);
 	void disconnect();
 	void write(std::string str);
+	void start_read();
 
 	bool is_ready() const;
 

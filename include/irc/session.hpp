@@ -54,6 +54,7 @@ class session {
 	sig_usr                                  on_new_user;
 	sig_s                                    on_irc_error;
 	sig_s                                    on_protocol_error;
+	bsig::connection                         on_connect_handle;
 //helper
 	void prepare_connection();
 	channel_iterator create_new_channel(const std::string& channel_name);
@@ -109,7 +110,7 @@ public:
 	 * @param username  An user name.
 	 * @param realname  A real, full user name.
 	 */
-	session(std::unqiue_ptr<persistant_connection>&& conn,
+	session(std::unique_ptr<persistant_connection>&& conn,
 	        std::string nickname, std::string username, std::string realname);
 
 

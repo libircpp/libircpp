@@ -80,6 +80,10 @@ public:
 	 */
 	void write(std::string str);
 
+	void start_read();
+
+	void stop();
+
 	template<typename F> bsig::connection connect_on_resolve(F&& f);
 	template<typename F> bsig::connection connect_on_connect(F&& f);
 	template<typename F> bsig::connection connect_on_disconnect(F&& f);
