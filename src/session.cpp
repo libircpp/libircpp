@@ -31,6 +31,32 @@ bool is_channel(const std::string& target) {
 		    target[0]=='+' || target[0]=='!');
 }
 
+void session::join_sequence() {
+	std::ostringstream oss;
+	oss << "USER " << username_ << " 0 * :";
+
+
+	if(realname_.empty()) oss << "*\r\n";
+	else                  oss << realname_ << "\r\n";
+
+	connection_->write(oss.str());
+	connection_->write("NICK "+nickname_+"\r\n");
+}
+
+void session::rejoin_sequence() {
+	join_sequence();
+	//on connection_established (internal)
+		//rejoin channel
+}
+
+void session::handle_nick_in_use() {
+	auto nn=on_new_nick(std::move(nickname_));
+	if(nn) nickname_=std::move(*nn);
+	else   nickname_+='_';
+	connection_->write("NICK "+nickname_+"\r\n");
+}
+
+
 void session::prepare_connection() {
 	assert(connection_);
 
@@ -61,17 +87,15 @@ void session::prepare_connection() {
 		}
 	);
 	connection_->start_read();
-
-
-	std::ostringstream oss;
-	oss << "USER " << username_ << " 0 * :";
-
-
-	if(realname_.empty()) oss << "*\r\n";
-	else                  oss << realname_ << "\r\n";
-
-	connection_->write(oss.str());
-	connection_->write("NICK "+nickname_+"\r\n");
+	connection_->connect_on_disconnect(
+		[](const std::string& msg) {
+			//set connection established to false
+			//reset connection handler
+				//reconnect
+				//rejoin channels
+		}
+	);
+	join_sequence();
 }
 
 session::session(std::unique_ptr<persistant_connection>&& conn,
@@ -342,6 +366,11 @@ void session::handle_reply(const prefix& pfx, command cmd,
 	case command::ERR_NOSUCHCHANNEL: // 403,
 		on_irc_error("No such channel");
 		break;
+
+	case command::ERR_NICKNAMEINUSE: // 403,
+		handle_nick_in_use();
+		break;
+
 	case command::RPL_MOTD: 
 	{
 		std::ostringstream oss; //TODO optimise for size=1 case?

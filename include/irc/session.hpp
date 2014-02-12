@@ -54,8 +54,11 @@ class session {
 	sig_usr                                  on_new_user;
 	sig_s                                    on_irc_error;
 	sig_s                                    on_protocol_error;
+	sig_rs_s                                 on_new_nick;
 	bsig::connection                         on_connect_handle;
 //helper
+	void join_sequence();
+	void rejoin_sequence();
 	void prepare_connection();
 	channel_iterator create_new_channel(const std::string& channel_name);
 	channel_iterator get_or_create_channel(const std::string& channel_name);
@@ -97,6 +100,7 @@ class session {
 	void handle_mode(   const prefix&                   pfx,
 	                    const std::string&              agent,
 	                    const std::string&              mode);
+	void handle_nick_in_use();
 //deleted functions
 	session(const session&)           =delete;
 	session(session&&)                =delete;
@@ -264,6 +268,8 @@ public:
 	 * @return The connection object to disconnect from the signal.
 	 */
 	template<typename F> bsig::connection connect_on_irc_error(F&& f);
+
+	template<typename F> bsig::connection connect_on_new_nick(F&& f);
 }; //class session
 
 
@@ -290,6 +296,12 @@ bsig::connection session::connect_on_new_user(F&& f) {
 template<typename F>
 bsig::connection session::connect_on_irc_error(F&& f) {
 	return on_irc_error.connect(std::forward<F>(f));
+}
+
+template<typename F>
+bsig::connection session::connect_on_new_nick(F&& f) {
+	on_new_nick.disconnect_all_slots();
+	return on_new_nick.connect(std::forward<F>(f));
 }
 
 } //namespace irc

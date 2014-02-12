@@ -69,6 +69,8 @@ namespace irc {
 
 	using sig_p_md         =bsig::signal<void(const prefix&, const mode_diff&)>;
 	using sig_ch_p_usr_md  =bsig::signal<void(irc::channel&, irc::user&, const prefix&, const mode_diff&)>;
+	//This could be moved?
+	using sig_rs_s         =bsig::signal<std::string(const std::string&)>;
 
 	using shared_prefix    =std::shared_ptr<prefix>;
 	using shared_channel   =std::shared_ptr<channel_impl>;
