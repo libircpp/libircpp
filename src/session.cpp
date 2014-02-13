@@ -547,6 +547,8 @@ void session::async_change_nick(const std::string& desired_nick) {
 }
 
 void session::stop() {
+	//should we quit, probably too late if we are just going to stop?
+	active_=false;
 	if(connection_) {
 		connection_->stop();
 	}
