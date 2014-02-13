@@ -42,6 +42,7 @@ class session {
 												channel_container::const_iterator
 											>;
 //member variables
+	bool                                     active_;
 	std::unique_ptr<persistant_connection>   connection_;
 	channel_container                        channels_;
 	user_container                           users_;
@@ -55,6 +56,7 @@ class session {
 	sig_s                                    on_irc_error;
 	sig_s                                    on_protocol_error;
 	sig_rs_s                                 on_new_nick;
+	sig_v                                    on_connection_established;
 	bsig::connection                         on_connect_handle;
 //helper
 	void join_sequence();
@@ -101,6 +103,7 @@ class session {
 	                    const std::string&              agent,
 	                    const std::string&              mode);
 	void handle_nick_in_use();
+	void handle_connection_established();
 //deleted functions
 	session(const session&)           =delete;
 	session(session&&)                =delete;
@@ -270,6 +273,7 @@ public:
 	template<typename F> bsig::connection connect_on_irc_error(F&& f);
 
 	template<typename F> bsig::connection connect_on_new_nick(F&& f);
+	template<typename F> bsig::connection connect_on_connection_established(F&& f);
 }; //class session
 
 
@@ -302,6 +306,11 @@ template<typename F>
 bsig::connection session::connect_on_new_nick(F&& f) {
 	on_new_nick.disconnect_all_slots();
 	return on_new_nick.connect(std::forward<F>(f));
+}
+
+template<typename F>
+bsig::connection session::connect_on_connection_established(F&& f) {
+	return on_connection_established.connect(std::forward<F>(f));
 }
 
 } //namespace irc
