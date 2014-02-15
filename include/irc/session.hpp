@@ -1,5 +1,4 @@
 
-	
 //          Copyright Joseph Dobson 2014
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -27,7 +26,7 @@ bool is_operator(const std::string& s);
     IRC session class.
 */
 class session {
-//member types 
+//member types
 	using channel_container                 =std::unordered_map<std::string, shared_channel>;
 	using channel_iterator                  =channel_container::iterator;
 
@@ -35,15 +34,16 @@ class session {
 	using user_iterator                     =user_container::iterator;
 
 	using const_user_iterator               =boost::transform_iterator<
-												second_deref, 
+												second_deref,
 												user_container::const_iterator
 											>;
 	using const_channel_iterator            =boost::transform_iterator<
-												second_deref, 
+												second_deref,
 												channel_container::const_iterator
 											>;
 //member variables
-	std::shared_ptr<connection>           	 connection_;
+	bool                                     active_;
+	std::unique_ptr<persistant_connection>   connection_;
 	channel_container                        channels_;
 	user_container                           users_;
 	std::string                              nickname_, username_, realname_, motd_;
@@ -55,7 +55,12 @@ class session {
 	sig_usr                                  on_new_user;
 	sig_s                                    on_irc_error;
 	sig_s                                    on_protocol_error;
+	sig_rs_s                                 on_new_nick;
+	sig_v                                    on_connection_established;
+	bsig::connection                         on_connect_handle;
 //helper
+	void join_sequence();
+	void rejoin_sequence();
 	void prepare_connection();
 	channel_iterator create_new_channel(const std::string& channel_name);
 	channel_iterator get_or_create_channel(const std::string& channel_name);
@@ -72,7 +77,7 @@ class session {
 	void handle_notice (const prefix&                   pfx,
 	                    const std::string&              nickname,
 	                    const std::string&              msg);
-	
+
 	void handle_ping(   const prefix&                   pfx,
 	                    const std::string&              channel_name,
 	                    const optional_string&          msg);
@@ -97,6 +102,8 @@ class session {
 	void handle_mode(   const prefix&                   pfx,
 	                    const std::string&              agent,
 	                    const std::string&              mode);
+	void handle_nick_in_use();
+	void handle_connection_established();
 //deleted functions
 	session(const session&)           =delete;
 	session(session&&)                =delete;
@@ -110,8 +117,15 @@ public:
 	 * @param username  An user name.
 	 * @param realname  A real, full user name.
 	 */
-	session(std::shared_ptr<connection> conn,
+	session(std::unique_ptr<persistant_connection>&& conn,
 	        std::string nickname, std::string username, std::string realname);
+
+
+	//TODO
+	//session(std::string hostname, std::string service,
+	//       std::string nickname, std::string username, std::string realname);
+
+
 	/**
 	 * Returns the user nick name.
 	 * @return The user nick name.
@@ -226,8 +240,8 @@ public:
 	 * This is useful if you wish to add hooks to ALL users, such as
 	 * if you want to be able to capture any nick change you might do:
 	 *
-	 * @code session.connect_on_new_user([](irc::user& u) { 
-	 *		u.connect_on_nick_change(my_nick_change_handler); 
+	 * @code session.connect_on_new_user([](irc::user& u) {
+	 *		u.connect_on_nick_change(my_nick_change_handler);
 	 * 	}
 	 * );
 	 * @endcode
@@ -240,7 +254,7 @@ public:
 	template<typename F> bsig::connection connect_on_new_user(F&& f);
 	/**
 	 * Connect to the on_irc_error
-	 * This signal is triggered when ever the server has replied 
+	 * This signal is triggered when ever the server has replied
 	 * with an error message
 	 *
 	 * This is NOT:
@@ -248,7 +262,7 @@ public:
 	 * 	- A failure to parse a message
 	 * 	- An interal error with the library (algorithm failure and so on)
 	 *
-	 * In the IRC RFC with a numeric replies beginning with ERR_ or 
+	 * In the IRC RFC with a numeric replies beginning with ERR_ or
 	 * the ERROR: reply
 	 *
 	 * @param f A callback function with the following signature:
@@ -257,32 +271,46 @@ public:
 	 * @return The connection object to disconnect from the signal.
 	 */
 	template<typename F> bsig::connection connect_on_irc_error(F&& f);
+
+	template<typename F> bsig::connection connect_on_new_nick(F&& f);
+	template<typename F> bsig::connection connect_on_connection_established(F&& f);
 }; //class session
 
 
-template<typename F> 
+template<typename F>
 bsig::connection session::connect_on_motd(F&& f) {
-	return on_motd.connect(std::forward<F>(f)); 
+	return on_motd.connect(std::forward<F>(f));
 }
-template<typename F> 
+template<typename F>
 bsig::connection session::connect_on_join_channel(F&& f) {
 	return on_join_channel.connect(std::forward<F>(f));
 }
-template<typename F> 
+template<typename F>
 bsig::connection session::connect_on_notice(F&& f) {
 	return on_notice.connect(std::forward<F>(f));
 }
-template<typename F> 
+template<typename F>
 bsig::connection session::connect_on_user_notice(F&& f) {
 	return on_user_notice.connect(std::forward<F>(f));
 }
-template<typename F> 
+template<typename F>
 bsig::connection session::connect_on_new_user(F&& f) {
 	return on_new_user.connect(std::forward<F>(f));
 }
-template<typename F> 
+template<typename F>
 bsig::connection session::connect_on_irc_error(F&& f) {
 	return on_irc_error.connect(std::forward<F>(f));
+}
+
+template<typename F>
+bsig::connection session::connect_on_new_nick(F&& f) {
+	on_new_nick.disconnect_all_slots();
+	return on_new_nick.connect(std::forward<F>(f));
+}
+
+template<typename F>
+bsig::connection session::connect_on_connection_established(F&& f) {
+	return on_connection_established.connect(std::forward<F>(f));
 }
 
 } //namespace irc

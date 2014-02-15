@@ -113,7 +113,8 @@ private:
 
 	void handle_resolve(const boost::system::error_code& error,
 	                    boost::asio::ip::tcp::resolver::iterator iterator);
-	void handle_connect(const boost::system::error_code& error);
+	void handle_connect(const boost::system::error_code& error,
+	                    boost::asio::ip::tcp::resolver::iterator iterator);
 	void handle_read(   const boost::system::error_code& error,
 	                    std::size_t bytes_transferred);
 	void handle_write(  const boost::system::error_code& error,

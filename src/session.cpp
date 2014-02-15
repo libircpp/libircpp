@@ -5,7 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include "session.hpp"
-#include "connection.hpp"
+#include "persistant_connection.hpp"
 #include "message.hpp"
 #include "channel.hpp"
 #include "prefix.hpp"
@@ -31,18 +31,58 @@ bool is_channel(const std::string& target) {
 		    target[0]=='+' || target[0]=='!');
 }
 
+void session::join_sequence() {
+	std::ostringstream oss;
+	oss << "USER " << username_ << " 0 * :";
+
+
+	if(realname_.empty()) oss << "*\r\n";
+	else                  oss << realname_ << "\r\n";
+
+	connection_->write(oss.str());
+	connection_->write("NICK "+nickname_+"\r\n");
+}
+
+void session::rejoin_sequence() {
+	join_sequence();
+}
+
+void session::handle_connection_established() {
+	active_=true;
+	//TODO: rejoining channels functionality
+	//rejoin_channels();
+	on_connection_established();
+}
+
+void session::handle_nick_in_use() {
+	auto self_it=get_or_create_user(nickname_);
+
+	auto nn=on_new_nick(std::move(nickname_));
+	if(nn) nickname_=std::move(*nn);
+	else   nickname_+='_';
+
+	self_it->second->set_nick(nickname_); //why do we keep these in sync? just use one?
+	users_[nickname_]=std::move(self_it->second);
+	users_.erase(self_it);
+
+	connection_->write("NICK "+nickname_+"\r\n");
+}
+
+
 void session::prepare_connection() {
 	assert(connection_);
 
-	connection_->connect_on_read_msg(
+	on_connect_handle.disconnect();
+
+	connection_->connect_on_read(
 		[&](const std::string& raw_msg) {
 			try {
 				bool success;
 				message msg;
 				std::tie(success, msg)=parse_message(raw_msg);
 				if(success) {
-					handle_reply(msg.prefix ? *msg.prefix 
-						: prefix{}, msg.command, msg.params);
+					handle_reply(msg.prefix ? *msg.prefix : prefix{},
+						msg.command, msg.params);
 				}
 				else {
 					std::ostringstream oss;
@@ -58,29 +98,35 @@ void session::prepare_connection() {
 			}
 		}
 	);
-	connection_->async_read();
-	std::ostringstream oss;
-	oss << "USER " << username_ << " 0 * :";
-
-	if(realname_.empty()) oss << "*\r\n";
-	else                  oss << realname_ << "\r\n";
-
-	connection_->async_write(oss.str());
-	connection_->async_write("NICK "+nickname_+"\r\n");
+	connection_->start_read();
+	connection_->connect_on_disconnect(
+		[this](const std::string& msg) {
+			active_=false;
+		}
+	);
+	join_sequence();
 }
 
-session::session(std::shared_ptr<connection> conn, 
+session::session(std::unique_ptr<persistant_connection>&& conn,
                  std::string nickname,
                  std::string username,
 				 std::string realname)
-:	connection_ { std::move(conn) }
+:	connection_ { std::move(conn)     }
 ,	nickname_   { std::move(nickname) }
 ,	username_   { std::move(username) }
 ,	realname_   { std::move(realname) }
 {
 	assert(connection_ && "connection is invalid from start");
-	prepare_connection();
+
+	if(connection_->is_ready()) {
+		prepare_connection();
+	}
+	else {
+		on_connect_handle=connection_->connect_on_connect(
+			std::bind(&session::prepare_connection, this));
+	}
 }
+
 
 session::channel_iterator session::create_new_channel(const std::string& channel_name) {
 	assert(channels_.count(channel_name)==0);
@@ -102,7 +148,7 @@ session::channel_iterator session::get_or_create_channel(const std::string& chan
 
 	if(it!=channels_.cend())
 		return it;
-	else 
+	else
 		return create_new_channel(channel_name);
 }
 
@@ -132,9 +178,9 @@ session::user_iterator session::get_or_create_user(const std::string& username) 
 
 	auto it=users_.find(mus);
 
-	if(it!=users_.cend()) 
+	if(it!=users_.cend())
 		return it;
-	else 
+	else
 		return create_new_user(mus, { mus });
 }
 
@@ -144,14 +190,14 @@ session::user_iterator session::get_or_create_user(const prefix& pfx) {
 
 	if(it!=users_.cend())
 		return it;
-	else 
+	else
 		return create_new_user(*pfx.nick, pfx);
 }
 
 
 /*
 ** HANDLERS
-*/ 
+*/
 void session::handle_privmsg(const prefix& pfx,
                              const std::string& target,
                              const std::string& content) {
@@ -192,12 +238,12 @@ void session::handle_topic(const std::string& channel_name, std::string topic) {
 	chan->set_topic(std::move(topic));
 }
 
-void session::handle_ping(const prefix& pfx, 
+void session::handle_ping(const prefix& pfx,
                           const std::string& server1,
                           const optional_string& server2) {
 	std::ostringstream oss;
 	oss << "PONG " << nickname_ << " " << server1 << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 
 void session::handle_join(const prefix& pfx,
@@ -219,7 +265,6 @@ void session::handle_part(const prefix& pfx,
                           const optional_string& msg) {
 	//TODO have just get
 	auto chan=get_or_create_channel(channel_name)->second;
-	
 	auto user_it=get_or_create_user(pfx);
 	auto user_p=user_it->second;
 
@@ -290,7 +335,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 		break;
 	case command::kick:
 		break;
-	case command::mode: 
+	case command::mode:
 		if(minimum_n_params(2)) {
 			std::string modes=params[1];
 			if(params.size() == 3) modes+=" " + params[2];
@@ -312,7 +357,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 	case command::pong:
 		//TODO do we care?
 		break;
-	case command::privmsg: 
+	case command::privmsg:
 		if(requires_n_params(2)) {
 			handle_privmsg(pfx, params[0], params[1]);
 		}
@@ -325,23 +370,33 @@ void session::handle_reply(const prefix& pfx, command cmd,
 		break;
 
 
-
 	case command::ERR_NOSUCHCHANNEL: // 403,
 		on_irc_error("No such channel");
 		break;
-	case command::RPL_MOTD: 
+
+	case command::ERR_NICKNAMEINUSE: // 403,
+		handle_nick_in_use();
+		break;
+
+	case command::RPL_WELCOME:
+		//it would be wrong to receive this and active_ be true
+		if(!active_)
+			handle_connection_established();
+		break;
+	case command::RPL_MOTD:
 	{
 		std::ostringstream oss; //TODO optimise for size=1 case?
 		if(!motd_.empty()) oss << '\n';
 		if(params.size() > 1) {
-			std::copy(params.cbegin()+1, params.cend(), 
+			std::copy(params.cbegin()+1, params.cend(),
 				std::ostream_iterator<std::string>(oss, " "));
 		}
 		motd_+=oss.str();
 		break;
 	}
 	case command::RPL_MOTDSTART:
-		motd_.clear(); 
+		if(!active_) handle_connection_established();
+		motd_.clear();
 		break;
 	case command::RPL_ENDOFMOTD:
 		on_motd(motd_);
@@ -353,11 +408,11 @@ void session::handle_reply(const prefix& pfx, command cmd,
 			assert(chan);
 
 			std::for_each(params.cbegin() + 3, params.cend(),
-				[&](const std::string& param) { 
+				[&](const std::string& param) {
 					std::istringstream iss { param };
 					std::for_each(
 						std::istream_iterator<std::string> { iss }, { },
-						[&](const std::string& nick) { 
+						[&](const std::string& nick) {
 							auto user=get_or_create_user(nick)->second;
 							assert(user);
 							//note this add user, not user join
@@ -473,25 +528,27 @@ session::const_channel_iterator session::channel_end()   const {
 void session::async_part(const channel& chan) {
 	std::ostringstream oss;
 	oss << "PART " << chan.get_name() << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 void session::async_join(const std::string& channel_name) {
 	std::ostringstream oss;
 	oss << "JOIN " << channel_name << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 void session::async_privmsg(const std::string& target, const std::string& msg) {
 	std::ostringstream oss;
 	oss << "PRIVMSG " << target << " :" << msg << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 void session::async_change_nick(const std::string& desired_nick) {
 	std::ostringstream oss;
 	oss << "NICK " << desired_nick << "\r\n";
-	connection_->async_write(oss.str());
+	connection_->write(oss.str());
 }
 
 void session::stop() {
+	//should we quit, probably too late if we are just going to stop?
+	active_=false;
 	if(connection_) {
 		connection_->stop();
 	}
