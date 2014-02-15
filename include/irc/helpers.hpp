@@ -17,14 +17,14 @@
 namespace irc {
 
 template<typename TypeWithUsers, typename OutIter>
-OutIter users_as_string(const TypeWithUsers& val, OutIter out) {
+OutIter users_as_strings(const TypeWithUsers& val, OutIter out) {
 	return std::transform(val.begin_users(), val.end_users(), out,
 		[](const user& u) { return u.get_nick(); }
 	);
 }
 
 template<typename TypeWithUsers>
-std::vector<std::string> users_as_string(const TypeWithUsers& val) {
+std::vector<std::string> users_as_strings(const TypeWithUsers& val) {
 	std::vector<std::string> out;
 	users_as_string(val, std::back_inserter(out));
 	return out;
