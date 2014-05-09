@@ -9,7 +9,7 @@
 #define BOOST_RESULT_OF_USE_DECLTYPE         1
 #define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS 1
 #define BOOST_SPIRIT_USE_PHOENIX_V3          1
- 
+
 #include <boost/spirit/home/qi.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
@@ -18,54 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace irc {
-
-namespace qi=boost::spirit::qi;
-namespace phx=boost::phoenix;
-
-enum class colours : unsigned { 
-	white=0,
-	black,
-	blue,
-	green,
-	red,
-	brown,
-	purple,
-	orange,
-	yellow,
-	light_green,
-	teal,
-	light_cyan,
-	light_blue,
-	pink,
-	grey,
-	light_grey,
-	none
-}; //enum class colours
-
-constexpr unsigned max_colours=static_cast<unsigned>(colours::none);
-
-inline colours colour_cast(unsigned value) {
-	if(value > max_colours) {
-		std::ostringstream oss;
-		oss << "Value not a valid enum value: " << value 
-		    << " max value is: " << max_colours;
-		throw std::runtime_error(oss.str());
-	}
-	return static_cast<colours>(value);
-}
-
-struct coloured_string {
-	colours foreground;
-	colours background;
-	std::string value;
-};
-
-std::ostream& operator<<(std::ostream& os, const coloured_string& val) {
-	return os << val.value;
-}
-
-} // namespace irc
+#include <parse_coloured_string.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(
 	irc::coloured_string,
@@ -75,6 +28,9 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 namespace irc {
+
+namespace qi=boost::spirit::qi;
+namespace phx=boost::phoenix;
 
 using split_string=std::vector<coloured_string>;
 constexpr char colour_char=0x03;
@@ -87,7 +43,7 @@ struct coloured_string_parser : qi::grammar<Iterator, split_string()> {
 
 	rule<colours>      colour_g;
 	rule<split_string> split_string_g;
-	rule<std::string>  content;
+	rule<std::string>  value_g;
 
 	coloured_string_parser() : coloured_string_parser::base_type(split_string_g) {
 		qi::uint_type uint_;
@@ -98,11 +54,13 @@ struct coloured_string_parser : qi::grammar<Iterator, split_string()> {
 		qi::_val_type _val;
 
 		colour_g      =uint_[ _val=phx::bind(colour_cast, _1) ];
-		content       =+~char_(colour_char);
+
+		value_g = +~char_(colour_char) | attr(std::string{}) >> &lit(colour_char);
+
 		split_string_g=
-			*( colour_char >> colour_g            >> (',' >> colour_g | attr(colours::none)) >> content
-			 | colour_char >> attr(colours::none) >> attr(colours::none)                     >> content
-			 | attr(colours::none)                >> attr(colours::none)                     >> content
+			*( colour_char >> colour_g            >> (',' >> colour_g | attr(colours::none)) >> value_g
+			 | colour_char >> attr(colours::none) >> attr(colours::none)                     >> value_g
+			 | attr(colours::none)                >> attr(colours::none)                     >> +~char_(colour_char)
 			 )
 			 ;
 	}

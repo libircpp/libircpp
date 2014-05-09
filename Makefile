@@ -15,8 +15,8 @@ export CFLAGS=$(OPTS) -std=c++11 -pedantic -Wall -Wextra -Wno-unused-parameter -
 
 export LFLAGS=$(OPTS)
 
-#slow objects are library elements and spirit parsers 
-SLOW_OBJS=src/parse_message.o
+#slow objects are library elements and spirit parsers
+SLOW_OBJS=src/parse_message.o src/parse_coloured_string.o
 FAST_OBJS=src/connection.o src/session.o src/channel.o src/user.o src/prefix.o src/command.o src/modes.o src/exception.o src/version.o src/persistant_connection.o src/simple_connection.o
 
 OBJS=$(SLOW_OBJS) $(FAST_OBJS) 
