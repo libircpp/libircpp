@@ -28,6 +28,7 @@ namespace irc {
 	class user_impl;
 	class channel_impl;
 	struct message;
+	struct ctcp_message;
 	class session;
 	class mode_block;
 	struct mode_diff;
@@ -71,6 +72,11 @@ namespace irc {
 	using sig_ch_p_usr_md  =bsig::signal<void(irc::channel&, irc::user&, const prefix&, const mode_diff&)>;
 	//This could be moved?
 	using sig_rs_s         =bsig::signal<std::string(const std::string&)>;
+
+	using sig_usr_ctcp     =bsig::signal<void(user&, ctcp_message)>;
+	using sig_ch_ctcp      =bsig::signal<void(user&, channel& ctcp_message)>;
+
+
 
 	using shared_prefix    =std::shared_ptr<prefix>;
 	using shared_channel   =std::shared_ptr<channel_impl>;

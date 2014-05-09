@@ -6,6 +6,8 @@
 #ifndef IRC_CTCP_HPP
 #define IRC_CTCP_HPP
 
+#include <string>
+
 namespace irc {
 /**
     CTCP namespace.
@@ -16,6 +18,8 @@ namespace irc {
     -#  place a query to a users client and getting an answer.
 */
 namespace ctcp {
+
+bool is_ctcp_message(const std::string& content);
 
 /** CTCP commands. */
 enum class command

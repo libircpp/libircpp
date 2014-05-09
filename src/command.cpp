@@ -22,7 +22,7 @@ command to_command(raw_command_t value) {
 	switch(value) {
 	default: {
 		std::ostringstream oss;
-		oss << "Value not an enum value: " << value;
+		oss << "Value not a valid enum value: " << value;
 		throw std::runtime_error(oss.str());
 	}
 	case static_cast<raw_command_t>(command::RPL_WELCOME):

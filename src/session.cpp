@@ -7,6 +7,8 @@
 #include "session.hpp"
 #include "persistant_connection.hpp"
 #include "message.hpp"
+#include "ctcp.hpp"
+#include "ctcp_message.hpp"
 #include "channel.hpp"
 #include "prefix.hpp"
 #include "user.hpp"
@@ -201,16 +203,29 @@ session::user_iterator session::get_or_create_user(const prefix& pfx) {
 void session::handle_privmsg(const prefix& pfx,
                              const std::string& target,
                              const std::string& content) {
-	if(pfx.nick) { //nick is an optional
-		auto user=get_or_create_user(pfx)->second; //TODO: by ref or move?
-		assert(user);
-		if(target == nickname_) { //1 to 1
+	if(!pfx.nick) { //nick is an optional
+		return;
+	}
+	auto user=get_or_create_user(pfx)->second; //TODO: by ref or move?
+	assert(user);
+
+	if(target == nickname_) { //1 to 1
+		if(ctcp::is_ctcp_message(content)) {
+			//TODO: handle ctcp here
+			//on_ctcp_request(*user, ??);
+		}
+		else {
 			user->direct_message(content);
 		}
-		else { //1 to channel
-			auto chan=get_or_create_channel(target)->second;
-			assert(chan);
-
+	}
+	else { //1 to channel
+		auto chan=get_or_create_channel(target)->second;
+		assert(chan);
+		if(ctcp::is_ctcp_message(content)) {
+			//TODO: handle ctcp here
+			//on_ctcp_channel_request(*user, *chan, ??);
+		}
+		else {
 			chan->message(user, content);
 			user->channel_message(chan, content);
 		}

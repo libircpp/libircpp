@@ -57,6 +57,13 @@ class session {
 	sig_s                                    on_protocol_error;
 	sig_rs_s                                 on_new_nick;
 	sig_v                                    on_connection_established;
+	//from user to you!
+	sig_usr_ctcp                             on_ctcp_request;
+	//response to you
+	sig_usr_ctcp                             on_ctcp_reply;
+	//from user to channel
+	sig_ch_ctcp                              on_ctcp_channel_request;
+
 	bsig::connection                         on_connect_handle;
 //helper
 	void join_sequence();
