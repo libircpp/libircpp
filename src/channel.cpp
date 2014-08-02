@@ -51,7 +51,9 @@ void channel_impl::send_privmsg_impl(const std::string& msg) {
 	on_message(*this, session_.get_self(), msg);
 }
 
-void channel_impl::send_part_impl() { session_.async_part(*this); }
+void channel_impl::send_part_impl(const std::string& msg) {
+	session_.async_part(*this, msg);
+}
 
 channel_impl::user_iterator channel_impl::begin_users_impl() {
 	return boost::make_transform_iterator(begin(users_), deref{});

@@ -4,6 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include "exception.hpp"
 #include "session.hpp"
 #include "persistant_connection.hpp"
 #include "message.hpp"
@@ -17,7 +18,6 @@
 
 #include <tuple> //tie
 #include <sstream> //ostringstream
-#include <stdexcept> //runtime_error
 
 namespace irc {
 
@@ -138,7 +138,7 @@ session::channel_iterator session::create_new_channel(const std::string& channel
 		channel_name, std::make_shared<channel_impl>(*this, channel_name));
 
 	if(!success)
-		throw std::runtime_error("Unable to insert new channel: " + channel_name);
+		throw IRC_MAKE_EXCEPTION("Unable to insert new channel: " + channel_name);
 
 	return it;
 }
@@ -166,7 +166,7 @@ session::user_iterator session::create_new_user(const std::string& name,
 	}
 
 	if(!success)
-		throw std::runtime_error("Unable to insert new user: " + name);
+		throw IRC_MAKE_EXCEPTION("Unable to insert new user: " + name);
 
 	return it;
 }
@@ -525,9 +525,9 @@ session::const_channel_iterator session::channel_end()   const {
 ** async interface
 */
 
-void session::async_part(const channel& chan) {
+void session::async_part(const channel& chan, const std::string& msg) {
 	std::ostringstream oss;
-	oss << "PART " << chan.get_name() << "\r\n";
+	oss << "PART " << chan.get_name() << " :" << msg << "\r\n";
 	connection_->write(oss.str());
 }
 void session::async_join(const std::string& channel_name) {

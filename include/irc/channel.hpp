@@ -106,7 +106,7 @@ public:
 	 * you will continue to recieve other registered signals until 
 	 * the server recognises your request
 	 */
-	void send_part_impl();
+	void send_part_impl(const std::string& msg);
 	/**
 	 * Request to change the channel's topic
 	 * @note, on topic change will not be signalled until the server 

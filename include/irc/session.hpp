@@ -173,7 +173,7 @@ public:
 	 * Leaves the specified channel.
 	 * @param chan The channel to leave.
 	 */
-	void async_part(const channel& chan);
+	void async_part(const channel& chan, const std::string& msg);
 	/**
 	 * Sends a message to the specified target.
 	 * @param target The target where to send the message, a channel or a nickname.

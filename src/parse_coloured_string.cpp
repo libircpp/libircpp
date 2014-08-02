@@ -23,7 +23,7 @@ split_string parse_coloured_string(const std::string& raw_msg) {
 
 	bool r=qi::parse(first, last, parser, fstr);
 
-	if(!r) 
+	if(!r)
 		throw std::runtime_error(
 			"provided string could not be parsed: " + raw_msg);
 

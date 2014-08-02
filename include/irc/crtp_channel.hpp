@@ -83,7 +83,7 @@ public:
 	 *
 	 * @throws if session.get_connection().is_ready() or session.is_active() is false
 	 */
-	void send_part();
+	void send_part(const std::string& msg);
 	/**
 	 * Find a user in this channel by their nick
 	 * @return a channel_iterator to the user, 
@@ -313,8 +313,8 @@ void crtp_channel<ImplType>::change_topic(const std::string& str) {
 	get_impl(*this).change_topic_impl(str);
 }
 template<typename ImplType>
-void crtp_channel<ImplType>::send_part() {
-	get_impl(*this).send_part_impl();
+void crtp_channel<ImplType>::send_part(const std::string& msg) {
+	get_impl(*this).send_part_impl(msg);
 }
 
 //SIGNAL REGISTRATION
