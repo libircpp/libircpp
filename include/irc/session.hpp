@@ -55,7 +55,8 @@ class session {
 	sig_usr                                  on_new_user;
 	sig_s                                    on_irc_error;
 	sig_s                                    on_protocol_error;
-	sig_rs_s                                 on_new_nick;
+	sig_s                                    on_nick_change;
+	sig_rs_s                                 generate_new_nick;
 	sig_v                                    on_connection_established;
 	bsig::connection                         on_connect_handle;
 //helper
@@ -102,6 +103,10 @@ class session {
 	void handle_mode(   const prefix&                   pfx,
 	                    const std::string&              agent,
 	                    const std::string&              mode);
+
+	void handle_nick(   const prefix&                   pfx,
+	                    const std::string&              new_nick);
+
 	void handle_nick_in_use();
 	void handle_connection_established();
 //deleted functions
@@ -272,7 +277,8 @@ public:
 	 */
 	template<typename F> bsig::connection connect_on_irc_error(F&& f);
 
-	template<typename F> bsig::connection connect_on_new_nick(F&& f);
+	template<typename F> bsig::connection connect_on_nick_change(F&& f);
+	template<typename F> bsig::connection connect_generate_new_nick(F&& f);
 	template<typename F> bsig::connection connect_on_connection_established(F&& f);
 }; //class session
 
@@ -303,9 +309,14 @@ bsig::connection session::connect_on_irc_error(F&& f) {
 }
 
 template<typename F>
-bsig::connection session::connect_on_new_nick(F&& f) {
-	on_new_nick.disconnect_all_slots();
-	return on_new_nick.connect(std::forward<F>(f));
+bsig::connection session::connect_on_nick_change(F&& f) {
+	return on_nick_change.connect(std::forward<F>(f));
+}
+
+template<typename F>
+bsig::connection session::connect_generate_new_nick(F&& f) {
+	generate_new_nick.disconnect_all_slots();
+	return generate_new_nick.connect(std::forward<F>(f));
 }
 
 template<typename F>

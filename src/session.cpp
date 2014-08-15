@@ -40,7 +40,12 @@ void session::join_sequence() {
 	else                  oss << realname_ << "\r\n";
 
 	connection_->write(oss.str());
-	connection_->write("NICK "+nickname_+"\r\n");
+
+	oss.str({ });
+	oss.clear();
+
+	oss << "NICK " << nickname_ << "\r\n";
+	connection_->write(oss.str());
 }
 
 void session::rejoin_sequence() {
@@ -54,10 +59,47 @@ void session::handle_connection_established() {
 	on_connection_established();
 }
 
+void session::handle_nick(const prefix& pfx, const std::string& new_nick) {
+	//TODO: maybe this should just be get_user?
+	if(!pfx.nick) {
+		on_irc_error("Can not change nick, old nick in prefix is missing");
+		return;
+	}
+
+	auto user_it=users_.find(*pfx.nick);
+
+	if(user_it == users_.cend()) {
+		on_irc_error("Can not change nick, original nick not in system");
+		return;
+	}
+
+	auto user=user_it->second;
+
+	bool is_self=user.get() == &get_self();
+
+	if(user->get_nick() != new_nick) {
+		bool success;
+		user_iterator uit;
+		std::tie(uit, success)=users_.emplace(new_nick, std::move(user));
+
+		if(success) {
+			if(is_self) {
+				nickname_=new_nick;
+				on_nick_change(new_nick);
+			}
+
+			uit->second->set_nick(new_nick);
+		}
+
+		//if it's failed then that user is still fucked right?
+		users_.erase(user_it);
+	}
+}
+
 void session::handle_nick_in_use() {
 	auto self_it=get_or_create_user(nickname_);
 
-	auto nn=on_new_nick(std::move(nickname_));
+	auto nn=generate_new_nick(std::move(nickname_));
 	if(nn) nickname_=std::move(*nn);
 	else   nickname_+='_';
 
@@ -313,14 +355,24 @@ void session::handle_reply(const prefix& pfx, command cmd,
 
 	auto requires_n_params=[&](std::size_t n) {
 		if(params.size() != n) {
-			//TODO on_irc_error(...)
+
+			std::ostringstream oss;
+			oss << to_string(cmd) << " expected exactly " << n
+			    << " parameters, " << params.size() << " provided";
+
+			on_irc_error(oss.str());
 			return false;
 		}
 		return true;
 	};
 	auto minimum_n_params=[&](std::size_t n) {
 		if(params.size() < n) {
-			//TODO on_irc_error(...)
+
+			std::ostringstream oss;
+			oss << to_string(cmd) << " expected at least " << n
+			    << " parameters, only " << params.size() << " provided";
+
+			on_irc_error(oss.str());
 			return false;
 		}
 		return true;
@@ -342,8 +394,9 @@ void session::handle_reply(const prefix& pfx, command cmd,
 			handle_mode(pfx, params[0], modes);
 		}
 		break;
-	case command::nick:
-		//TODO
+	case command::nick: if(minimum_n_params(1)) {
+			handle_nick(pfx, params[0]);
+		}
 		break;
 	case command::notice: if(requires_n_params(2))
 		handle_notice(pfx, params[0], params[1]);
@@ -456,7 +509,7 @@ void session::handle_reply(const prefix& pfx, command cmd,
 }
 
 
-void session::handle_mode(const prefix& pfx, 
+void session::handle_mode(const prefix& pfx,
                           const std::string& agent,
                           const std::string& mode) {
 
@@ -475,7 +528,7 @@ void session::handle_mode(const prefix& pfx,
 
 		user->get_modes().apply_mode_diff(pfx, parsed_modes);
 	}
-}	
+}
 
 const std::string& session::get_nick() const {
 	return nickname_;
@@ -487,7 +540,7 @@ user& session::get_self() {
 	auto it=get_or_create_user(get_nick());
 
 	if(it==end(users_)) {
-		assert(false && "not implemented");
+		assert(false && "could not find the SELF user");
 	}
 	assert(it->second); //should be no nullptr shared_ptr in users
 	return *it->second;
