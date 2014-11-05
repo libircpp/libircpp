@@ -19,6 +19,8 @@
 #include <tuple> //tie
 #include <sstream> //ostringstream
 
+#include <fstream> //ostringstream
+
 namespace irc {
 
 bool is_operator(const std::string& s) { 
@@ -593,6 +595,21 @@ void session::async_privmsg(const std::string& target, const std::string& msg) {
 	oss << "PRIVMSG " << target << " :" << msg << "\r\n";
 	connection_->write(oss.str());
 }
+
+
+void session::async_invite(const std::string& channel_name, 
+                           const std::string& nick) {
+	std::ostringstream oss;
+	oss << "INVITE " << nick << " " << channel_name << "\r\n";
+	auto s=oss.str();
+
+	//connection_->write(oss.str());
+	std::ofstream os { "dbg" };
+	os << s << std::endl;;
+	connection_->write(s);
+}
+
+
 void session::async_change_nick(const std::string& desired_nick) {
 	std::ostringstream oss;
 	oss << "NICK " << desired_nick << "\r\n";

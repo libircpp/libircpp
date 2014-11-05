@@ -72,6 +72,20 @@ public:
 	 */
 	void send_privmsg(const std::string& msg);
 	/**
+	 * Invites a user to a channel from user object 
+	 * This overload takes a user object
+	 *
+	 * @the users you wish to invite
+	 */
+	void send_invite(const std::string& nick);
+	/**
+	 * Invites a user to a channel from user object 
+	 * This overload takes a user object
+	 *
+	 * @the users you wish to invite
+	 */
+	void send_invite(const user& usr);
+	/**
 	 * Request to change the channel topic
 	 * @param str The new channel topic requested
 	 * @throws if session.get_connection().is_ready() or session.is_active() is false
@@ -308,6 +322,17 @@ void crtp_channel<ImplType>::send_privmsg(const std::string& msg) {
 	//ImplType::send_privmsg(static_cast<ImplType*>(this), msg);
 	get_impl(*this).send_privmsg_impl(msg);
 }
+
+
+template<typename ImplType>
+void crtp_channel<ImplType>::send_invite(const std::string& nick) {
+	get_impl(*this).send_invite_impl(nick);
+}
+template<typename ImplType>
+void crtp_channel<ImplType>::send_invite(const user& usr) {
+	get_impl(*this).send_invite_impl(usr);
+}
+
 template<typename ImplType>
 void crtp_channel<ImplType>::change_topic(const std::string& str) {
 	get_impl(*this).change_topic_impl(str);

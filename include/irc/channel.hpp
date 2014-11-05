@@ -100,6 +100,22 @@ public:
 	 * @param msg The message to send.
 	 */
 	void send_privmsg_impl(const std::string& msg);
+
+	/**
+	 * Invites a user to a channel from a nick 
+	 * This doesn't require to be passed a user object as it's for seeable 
+	 * that the user is inviting a user who currently isn't in the system
+	 *
+	 * @the users nick as a string
+	 */
+	void send_invite_impl(const std::string& nick);
+	/**
+	 * Invites a user to a channel from user object 
+	 * This overload takes a user object
+	 *
+	 * @the users you wish to invite
+	 */
+	void send_invite_impl(const user& usr);
 	/**
 	 * Resquest to leave channel.
 	 * @note you will not receive the on_part_signal, and 

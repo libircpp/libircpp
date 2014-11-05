@@ -186,6 +186,13 @@ public:
 	 */
 	void async_privmsg(const std::string& target, const std::string& msg);
 	/**
+	 * Invites a user to join a channel
+	 * @param channel_name the name of the channel you are inviting the user to
+	 * @param nick the nick of the user you wish to join
+	 */
+	void async_invite(const std::string& channel_name,
+	                  const std::string& nick);
+	/**
 	 * Changes our current nickname.
 	 * @param target The new nick name.
 	 */

@@ -51,6 +51,13 @@ void channel_impl::send_privmsg_impl(const std::string& msg) {
 	on_message(*this, session_.get_self(), msg);
 }
 
+void channel_impl::send_invite_impl(const std::string& nick) {
+	session_.async_invite(get_name(), nick);
+}
+void channel_impl::send_invite_impl(const user& usr) {
+	send_privmsg_impl(usr.get_nick());
+}
+
 void channel_impl::send_part_impl(const std::string& msg) {
 	session_.async_part(*this, msg);
 }
