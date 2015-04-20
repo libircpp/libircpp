@@ -2,7 +2,7 @@ export CPP =g++
 export LNK =$(CPP)
 
 #export OPTS         =-O3 
-export OPTS         ?=-O0 -ggdb 
+export OPTS         ?=-O0 -g 
 
 INC          =-I ./include/irc
 LIB          =-lboost_system -lboost_signals -lpthread
