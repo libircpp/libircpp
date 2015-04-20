@@ -286,7 +286,7 @@ void session::handle_ping(const prefix& pfx,
                           const std::string& server1,
                           const optional_string& server2) {
 	std::ostringstream oss;
-	oss << "PONG " << nickname_ << " " << server1 << "\r\n";
+	oss << "PONG " << server1 << "\r\n";
 	connection_->write(oss.str());
 }
 
